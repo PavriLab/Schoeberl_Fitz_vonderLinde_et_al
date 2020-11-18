@@ -46,6 +46,8 @@ parser.add_argument('-rn', '--readNum', nargs = '+', type = int,
                     help = 'space-separated list of total number of read pairs')
 parser.add_argument('-s', '--sampleNames', nargs = '+',
                     help = 'space-separated list of sample names corresponding to input files')
+parser.add_argument('--fig_width', default = 12, type = int,
+                    help = 'width of the figure in inches')
 parser.add_argument('-o', '--outFile', required = True,
                     help = 'file to save the plot to')
 args = parser.parse_args()
