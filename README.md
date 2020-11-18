@@ -69,13 +69,13 @@ python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile -c chr12 -l 114435000 -
 ```
 where `-t` specifies a cutoff for the value each matrix entry can acquire. The generated files can then be used with the `TriCplot.py` script to generate data visualizations of the pipelines results. An example command is given below:
 ```bash
-python3 TriCplot.py --treatment priB_d2_Emu_*_TriC_interactions_1000_RAW.tab \
+python3 TriCplot.py --treatment data/matrices/priB_d2_Emu_*_TriC_interactions_1000_RAW.tab \
                     --treatment_label priB_d2 \
-                    --control priB_d0_Emu_*_TriC_interactions_1000_RAW.tab \
+                    --control data/matrices/priB_d0_Emu_*_TriC_interactions_1000_RAW.tab \
                     --control_label priB_d0 \
                     --region "chr12:114435000-114669000" \
                     --capture_bins capture.oligo \
-                    --annotation vdj_genes.sort.bed vdj_REs.bed mappability.bw \
+                    --annotation data/annotations/vdj_genes.sort.bed data/annotations/vdj_REs.bed data/annotations/mappability.bw \
                     --annotation_drawstyle Line2D Marker bigwig \
                     --annotation_yMin 0 0 0 \
                     --annotation_yMax 1 1 1 \
@@ -83,9 +83,9 @@ python3 TriCplot.py --treatment priB_d2_Emu_*_TriC_interactions_1000_RAW.tab \
                     --alternating 0 0 0 \
                     --highlight_annotation 1 \
                     --highlight_features Cg1 4 \
-                    --treatment_3plus priB_d2_Emu_3plus.tsv \
-                    --control_3plus TriC_7_priB_d0_Emu_3plus.tsv \
+                    --treatment_3plus data/profiles/priB_d2_Emu_3plus.tsv \
+                    --control_3plus data/profiles/priB_d0_Emu_3plus.tsv \
                     --profile_yMax 200 \
-                    --outputFilePrefix priB_Emu
+                    --outputFilePrefix data/priB_Emu
 ```
 A more detailed documentation on the different commandline arguments can be found via `python3 TriCplot.py --help/-h`. Results and test data can be found in the data folder.
