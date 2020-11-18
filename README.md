@@ -89,3 +89,17 @@ python3 TriCplot.py --treatment data/matrices/priB_d2_Emu_*_TriC_interactions_10
                     --outputFilePrefix data/priB_Emu
 ```
 A more detailed documentation on the different commandline arguments can be found via `python3 TriCplot.py --help/-h`. Results and test data can be found in the data folder.
+
+### FAQ
+#### How do I get the oligos file for my capture probes?
+ 1. Know the coordinates of the exact mapping positions in your favorite genome build
+ 2. Go to the UCSC browser and open this genome build
+ 3. Select the NlaIII restriction enzyme map for this build and add it to the view
+ 4. Navigate to your probes mapping site
+ 5. Identify the closest upstream and downstream restriction site
+ 6. Take the start coordinate of your upstream site and the end coordinate of your downstream site
+ 7. Make a file with the following format
+ ```
+ probename  12  123456789 123456900 12  123456789 123456900 1 A
+ ```
+ The first is the probes name (be careful here because the pipeline is very picky and does only allow \[0-9\], \[a-z\], \[A-Z\] and \_ in the names and will otherwise fail), 12 is the number of the chromosome and 123456789 and 123456900 are start and end positions of the restriction fragment (RF) your probe maps to. The coordinates after this initial block state the exclusion zones which can be used to exclude fragments that map very close to the probes RF (this can usually be the same coordinates a the probes RF if you want to use it a good value would be +- 1kb). The last block 1 and A are SNP positions and SNP base in the RF where 1 and A are a good default for saying we don't have any SNP.
