@@ -124,7 +124,7 @@ ax2.set_xticks(pos)
 ax2.set_xticklabels(args.sampleNames, rotation = 45, ha = 'right')
 
 
-fig.set_figwidth(12)
-fig.set_figheight(5)
+fig.set_figwidth(args.fig_width)
+fig.set_figheight(args.fig_width/2)
 fig.tight_layout()
 fig.savefig(args.outFile)
