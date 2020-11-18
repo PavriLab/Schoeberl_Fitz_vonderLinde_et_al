@@ -6,7 +6,12 @@ repository for Tri-C data analysis related code.
 ### Demultiplexing reads
 This task is a very generic one and could in principle also be done by any other dedicated software. Nevertheless, `TriCdemultiplex.py` handles this task at least for the samples generated at the VBCF facilities. The script requires you to pass the BAM file containing the reads to demultiplex, a file containing the barcodes as well as a mapping to the sample name and the number of mismatches allowed in the barcode with the `-m` argument. The `-t` argument specifies the number of threads to use for demultiplexing and `-p` gives the prefix of the demultiplexed fastq files.
 ```bash
-python3 utils/TriCdemultiplex.py -i bams/200109_TriC_1.bam -b resource/barcodes.tsv -m 1 -t 7 -p fastqs/TriC_1 -s demux_stats_TriC_1.tsv
+python3 utils/TriCdemultiplex.py -i bams/200109_TriC_1.bam \
+                                 -b resource/barcodes.tsv \
+                                 -m 1 \
+                                 -t 7 \
+                                 -p fastqs/TriC_1 \
+                                 -s demux_stats_TriC_1.tsv
 ```
 The `barcodes.tsv` is a tab-separated file with the following layout (without the header line)
 ```
@@ -26,7 +31,12 @@ This information can retrieved via the seqmate site of the VBCF.
 ### Plotting statistics
 The `plotTriCstats.py` is meant to generate a comprehensive view on the statistics the [CCseq](https://github.com/Hughes-Genome-Group/CCseqBasicS) pipeline produces. It requires the report files of the flashed and non-flashed reads of stage 3 (located in the F3 folder) and the the combined stats of stage 6 (located in the F6 folder) as well as the total number of reads entering the pipeline and the sample labels. E.g. for a sequencing run containing 9 samples a valid call of the script would be
 ```bash
-python3 utils/plotTriCstats.py -f6 CCseq/TriC_7_*/F6*/COMBINED_report_CS5.txt -f3f CCseq/TriC_7_*/F3*/FLASHED_REdig_report_CS5.txt -f3n CCseq/TriC_7_*/F3*/NONFLASHED_REdig_report_CS5.txt -rn 4088719 4572065 4859024 5031120 4834634 4942035 6261844 5649615 5372841 -s mESC_1 mESC_2 mESC_3 priB_d0_1 priB_d0_2 priB_d0_3 priB_d2_1 priB_d2_2 priB_d2_3 -o plots/TriC_7_Emu_stats.pdf
+python3 utils/plotTriCstats.py -f6 CCseq/TriC_7_*/F6*/COMBINED_report_CS5.txt \
+                               -f3f CCseq/TriC_7_*/F3*/FLASHED_REdig_report_CS5.txt \
+                               -f3n CCseq/TriC_7_*/F3*/NONFLASHED_REdig_report_CS5.txt \
+                               -rn 4088719 4572065 4859024 5031120 4834634 4942035 6261844 5649615 5372841 \
+                               -s mESC_1 mESC_2 mESC_3 priB_d0_1 priB_d0_2 priB_d0_3 priB_d2_1 priB_d2_2 priB_d2_3 \
+                               -o plots/TriC_7_Emu_stats.pdf
 ```
 where the wildcard is used to just address all existing folder. **The script is sensitive to the order the folders are given to it, meaning that it requires that all folders and additional information (readcount, sample name) are given in the same order as the folders. E.g. for mESC_1 the folders as well as the readcount have to be at the first place of the list passed to the script. So make sure this is the case, otherwise the results will be not interpretable.**
 
@@ -59,13 +69,13 @@ python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile -c chr12 -l 114435000 -
 ```
 where `-t` specifies a cutoff for the value each matrix entry can acquire. The generated files can then be used with the `TriCplot.py` script to generate data visualizations of the pipelines results. An example command is given below:
 ```bash
-python3 TriCplot.py --treatment TriC_7_priB_d2_Emu_*_TriC_interactions_1000_RAW.tab \
+python3 TriCplot.py --treatment priB_d2_Emu_*_TriC_interactions_1000_RAW.tab \
                     --treatment_label priB_d2 \
-                    --control TriC_7_priB_d0_Emu_*_TriC_interactions_1000_RAW.tab \
+                    --control priB_d0_Emu_*_TriC_interactions_1000_RAW.tab \
                     --control_label priB_d0 \
                     --region "chr12:114435000-114669000" \
                     --capture_bins capture.oligo \
-                    --annotation vdjanno_new.sort.bed vdjREs_bed3.bed mappability.bw \
+                    --annotation vdj_genes.sort.bed vdj_REs.bed mappability.bw \
                     --annotation_drawstyle Line2D Marker bigwig \
                     --annotation_yMin 0 0 0 \
                     --annotation_yMax 1 1 1 \
