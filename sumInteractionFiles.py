@@ -19,8 +19,8 @@ for filename in args.input:
     tab = tab.merge(tmp_tab, on = ['coords1', 'coords2'], how = 'outer') \
              .fillna(0)
 
-tab['count'] = tab.filter(regex = 'count_*') \
-                  .sum(axis = 1)
+tab['count'] = [int(i) for i in tab.filter(regex = 'count_*') \
+                                   .sum(axis = 1)]
 
 print(tab['count'].max())
 tab[['coords1', 'coords2', 'count']].to_csv(args.outputFile,
