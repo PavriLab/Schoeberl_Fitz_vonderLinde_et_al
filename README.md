@@ -31,20 +31,30 @@ This information can retrieved via the seqmate site of the VBCF.
 ### Plotting statistics
 The `plotTriCstats.py` is meant to generate a comprehensive view on the statistics the [CCseq](https://github.com/Hughes-Genome-Group/CCseqBasicS) pipeline produces. It requires the report files of the flashed and non-flashed reads of stage 3 (located in the F3 folder) and the the combined stats of stage 6 (located in the F6 folder) as well as the total number of reads entering the pipeline and the sample labels. E.g. for a sequencing run containing 9 samples a valid call of the script would be
 ```bash
-python3 utils/plotTriCstats.py -f6 CCseq/TriC_7_*/F6*/COMBINED_report_CS5.txt \
-                               -f3f CCseq/TriC_7_*/F3*/FLASHED_REdig_report_CS5.txt \
-                               -f3n CCseq/TriC_7_*/F3*/NONFLASHED_REdig_report_CS5.txt \
-                               -rn 4088719 4572065 4859024 5031120 4834634 4942035 6261844 5649615 5372841 \
-                               -s mESC_1 mESC_2 mESC_3 priB_d0_1 priB_d0_2 priB_d0_3 priB_d2_1 priB_d2_2 priB_d2_3 \
-                               -o plots/TriC_7_Emu_stats.pdf
+python3 plotTriCstats.py -f6 CCseq/TriC_7_*/F6*/COMBINED_report_CS5.txt \
+                         -f3f CCseq/TriC_7_*/F3*/FLASHED_REdig_report_CS5.txt \
+                         -f3n CCseq/TriC_7_*/F3*/NONFLASHED_REdig_report_CS5.txt \
+                         -rn 4088719 4572065 4859024 5031120 4834634 4942035 6261844 5649615 5372841 \
+                         -s mESC_1 mESC_2 mESC_3 priB_d0_1 priB_d0_2 priB_d0_3 priB_d2_1 priB_d2_2 priB_d2_3 \
+                         -o plots/TriC_7_Emu_stats.pdf
 ```
 where the wildcard is used to just address all existing folder. **The script is sensitive to the order the folders are given to it, meaning that it requires that all folders and additional information (readcount, sample name) are given in the same order as the folders. E.g. for mESC_1 the folders as well as the readcount have to be at the first place of the list passed to the script. So make sure this is the case, otherwise the results will be not interpretable.**
+
+### Summing single capture interaction files
+If you are using multiple probes in one sample the pipeline will produce an interaction file for each probe separately. This is usually not what we want and we thus need to recombine them to a single interaction file. This is done with the `sumInteractionFiles.py`, which just sums the counts for the individual restriction fragments and writes the result including the maximum count to a new file. An example command looks like follows:
+```bash
+python3 sumInteractionFiles.py -i CCseq/${sample}/greenGraphs_combined_sample_CS5/sample_TriC/sample_*_TriC_interactions.txt \
+                               -o interactions/${sample}_TriC_interactions.txt
+```
 
 ### Visualizing the results
 The final step of the analysis is the visualization of the results of the [CCseq](https://github.com/Hughes-Genome-Group/CCseqBasicS) pipeline. This is done by the `TriCplot.py` script. However, in order to do this we need to generate a few additional files from the pipeline output, namely fetching the COMBINED.bam file of stage 6 and extracting reads that have only 3 or more than 3 fragments, which is necessary to generate the profile plots. The `TriCgetReads.py` script does exactly that. Example commands for this would look as follows:
 ```bash
 # for reads with 3 or more fragments
-python3 utils/TriCgetReads.py -b CCseq/${sample}/F6_greenGraphs_combined_sample_CS5/COMBINED_reported_capture_reads_CS5.bam -n 3 -o morethanthree/${sample}_3wayplus.bam --larger
+python3 TriCgetReads.py -b CCseq/${sample}/F6_greenGraphs_combined_sample_CS5/COMBINED_reported_capture_reads_CS5.bam \
+                        -n 3 \
+                        --larger \
+                        -o morethanthree/${sample}_3wayplus.bam
 ```
 The `-n` argument specifies the number of fragments a valid read has. This is an exact process. If one would like to get all reads with exactly n or more fragments, the `--larger` flag has to be set.
 
