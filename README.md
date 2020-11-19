@@ -43,7 +43,7 @@ where the wildcard is used to just address all existing folder. **The script is 
 ### Summing single capture interaction files
 If you are using multiple probes in one sample the pipeline will produce an interaction file for each probe separately. This is usually not what we want and we thus need to recombine them to a single interaction file. This is done with the `sumInteractionFiles.py`, which just sums the counts for the individual restriction fragments and writes the result including the maximum count to a new file. An example command looks like follows:
 ```bash
-python3 sumInteractionFiles.py -i CCseq/${sample}/greenGraphs_combined_sample_CS5/sample_TriC/sample_*_TriC_interactions.txt \
+python3 sumInteractionFiles.py -i CCseq/${sample}/F6_greenGraphs_combined_sample_CS5/sample_TriC/sample_*_TriC_interactions.txt \
                                -o interactions/${sample}_TriC_interactions.txt
 ```
 
