@@ -487,6 +487,14 @@ parser.add_argument('--control_3plus',
                     help='tab-separated table containing counts of reads with 3 or more valid restriction fragments in the control condition')
 parser.add_argument('--profile_yMax', type = float, default = 200,
                     help='maximum value of the y axis of the profile plot')
+parser.add_argument('--compare_vMin', default = 0, type = float,
+                    help = 'minimum value of colorbars in the compare matrix plots')
+parser.add_argument('--compare_vMax', default = 50, type = float,
+                    help = 'maximum value of colorbars in the compare matrix plots')
+parser.add_argument('--diff_vMin', default = -15, type = float,
+                    help = 'minimum value of colorbars in the difference matrix plots')
+parser.add_argument('--diff_vMax', default = 15, type = float,
+                    help = 'maximum value of colorbars in the difference matrix plots')
 parser.add_argument('--figwidth', default=10, type=float,
                     help='width of the generated figure. Height is computed accordingly.')
 parser.add_argument('--outputFilePrefix', '-o', required=True,
@@ -610,7 +618,8 @@ treatment_ax = plotMatrix(treatment_ax,
                           (leftBound, rightBound),
                           capturebins=capturebins,
                           highlightbins=highlightbins,
-                          vmax=50,
+                          vmin=args.compare_vMin,
+                          vmax=args.compare_vMax,
                           subplot_label=args.treatment_label)
 
 control_ax = plotMatrix(control_ax,
@@ -619,7 +628,8 @@ control_ax = plotMatrix(control_ax,
                         (leftBound, rightBound),
                         capturebins=capturebins,
                         highlightbins=highlightbins,
-                        vmax=50,
+                        vmin=args.compare_vMin,
+                        vmax=args.compare_vMax,
                         mirror_horizontal=True,
                         subplot_label=args.control_label)
 
@@ -629,8 +639,8 @@ diff_ax = plotMatrix(diff_ax,
                      (leftBound, rightBound),
                      capturebins=capturebins,
                      highlightbins=highlightbins,
-                     vmin=-15,
-                     vmax=15,
+                     vmin=args.diff_vMin,
+                     vmax=args.diff_vMax,
                      subplot_label='-'.join((args.treatment_label, args.control_label)))
 
 if any(profile_args):
