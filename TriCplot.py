@@ -629,7 +629,8 @@ diff_ax = plotMatrix(diff_ax,
                      (leftBound, rightBound),
                      capturebins=capturebins,
                      highlightbins=highlightbins,
-                     vmax=50,
+                     vmin=-15,
+                     vmax=15,
                      subplot_label='-'.join((args.treatment_label, args.control_label)))
 
 if any(profile_args):
