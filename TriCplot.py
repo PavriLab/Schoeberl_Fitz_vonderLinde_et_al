@@ -16,7 +16,7 @@ os.environ['NUMEXPR_NUM_THREADS'] = '8'
 mpl.rcParams['pdf.fonttype'] = 42
 
 
-def getRegionalMatrix(contactMatrix, intervalstarts, start, end, csr=False):
+def get_regional_matrix(contactMatrix, intervalstarts, start, end, csr=False):
     indices, include = [], []
     for i, loc in enumerate(intervalstarts):
         if loc >= start and loc < end:
@@ -28,7 +28,7 @@ def getRegionalMatrix(contactMatrix, intervalstarts, start, end, csr=False):
     return contactMatrix if not csr else contactMatrix.toarray()
 
 
-def loadProfileTab(filename, interval=None):
+def load_profile_tab(filename, interval=None):
     tab = pd.read_csv(filename, sep='\t')
     header = [s.strip("'") for s in open(filename, 'r').readline()[1:].rstrip().split('\t')]
     tab.columns = header
@@ -40,7 +40,7 @@ def loadProfileTab(filename, interval=None):
     return tab
 
 
-def addAnnotationMarker(ax, annotation, increment, xmin, xmax):
+def add_annotation_marker(ax, annotation, increment, xmin, xmax):
     x = []
     tab = pd.read_csv(annotation, sep='\t')
     for i, locus in tab.iterrows():
@@ -52,7 +52,7 @@ def addAnnotationMarker(ax, annotation, increment, xmin, xmax):
     ax.plot(x, [0.5] * len(x), '|')
 
 
-def addAnnotationLine2D(ax, annotation, increment, xmin, xmax, alternating=False):
+def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=False):
     tab = pd.read_csv(annotation, sep='\t')
     for i, locus in tab.iterrows():
         start, end = locus['start'], locus['end']
@@ -88,7 +88,7 @@ def smooth(values, smoothwindow):
     return np.nanmean(values.reshape(rows, smoothwindow), axis=1)
 
 
-def addBigWigTrack(ax, bigwig, chrom, start, end, xmin, xmax, smooth_track=True, smoothwindow=100):
+def add_bigwig_track(ax, bigwig, chrom, start, end, xmin, xmax, smooth_track=True, smoothwindow=100):
     bw = pbw.open(bigwig)
     values = np.array(bw.values(chrom, int(start), int(end)))
     if smooth_track:
@@ -97,37 +97,37 @@ def addBigWigTrack(ax, bigwig, chrom, start, end, xmin, xmax, smooth_track=True,
     ax.fill_between(np.linspace(xmin, xmax, len(values)), values)
 
 
-def plotAnnotation(ax,
-                   track,
-                   ylabel,
-                   alternating,
-                   plottype,
-                   ylim,
-                   number_of_bins,
-                   start,
-                   end,
-                   chrom,
-                   scaling=1000,
-                   xticknum=None):
+def plot_annotation(ax,
+                    track,
+                    ylabel,
+                    alternating,
+                    plottype,
+                    ylim,
+                    number_of_bins,
+                    start,
+                    end,
+                    chrom,
+                    scaling=1000,
+                    xticknum=None):
     increment = number_of_bins / (end - start)
     ax.set_ylim(bottom=ylim[0], top=ylim[1])
     ax.set_yticks([])
     ax.set_ylabel(ylabel)
 
     if plottype == 'Line2D':
-        addAnnotationLine2D(ax, track, increment, start, end, alternating)
+        add_annotation_line2D(ax, track, increment, start, end, alternating)
 
     elif plottype == 'Marker':
-        addAnnotationMarker(ax, track, increment, start, end)
+        add_annotation_marker(ax, track, increment, start, end)
 
     elif plottype == 'bigwig':
-        addBigWigTrack(ax,
-                       track,
-                       chrom,
-                       start,
-                       end,
-                       0,
-                       number_of_bins)
+        add_bigwig_track(ax,
+                         track,
+                         chrom,
+                         start,
+                         end,
+                         0,
+                         number_of_bins)
 
     else:
         raise Exception("plottype not supported")
@@ -150,20 +150,20 @@ def plotAnnotation(ax,
     return ax
 
 
-def plotMatrix(ax,
-               mat,
-               cmap,
-               xrange,
-               scaling=1000,
-               capturebins=None,
-               highlightbins=None,
-               xlabel=None,
-               xticknum=0,
-               cbarwidth=5,
-               vmin=0,
-               vmax=50,
-               mirror_horizontal=False,
-               subplot_label=None):
+def plot_matrix(ax,
+                mat,
+                cmap,
+                xrange,
+                scaling=1000,
+                capturebins=None,
+                highlightbins=None,
+                xlabel=None,
+                xticknum=0,
+                cbarwidth=5,
+                vmin=0,
+                vmax=50,
+                mirror_horizontal=False,
+                subplot_label=None):
     '''
     plotting function for triC results
 
@@ -295,17 +295,17 @@ def plotMatrix(ax,
     return ax
 
 
-def plotProfileOverlay(ax,
-                       profiledict,
-                       number_of_bins,
-                       xrange,
-                       colors,
-                       yrange=None,
-                       scaling=1000,
-                       capturebins=None,
-                       ylabel=None,
-                       xlabel=None,
-                       xticknum=0):
+def plot_profile_overlay(ax,
+                         profiledict,
+                         number_of_bins,
+                         xrange,
+                         colors,
+                         yrange=None,
+                         scaling=1000,
+                         capturebins=None,
+                         ylabel=None,
+                         xlabel=None,
+                         xticknum=0):
     xrange = (xrange[0] / scaling, xrange[1] / scaling)
 
     if ylabel:
@@ -339,7 +339,7 @@ def plotProfileOverlay(ax,
     return ax
 
 
-def computeAverageMatrix(matrices):
+def compute_average_matrix(matrices):
     summed = np.zeros(shape=matrices[0].shape)
     for mat in matrices:
         summed += mat
@@ -347,7 +347,7 @@ def computeAverageMatrix(matrices):
     return summed / len(matrices)
 
 
-def makeDiffMatrix(mat1, mat2):
+def make_difference_matrix(mat1, mat2):
     sum1 = mat1.sum()
     sum2 = mat2.sum()
 
@@ -360,13 +360,13 @@ def makeDiffMatrix(mat1, mat2):
     return mat1 - mat2
 
 
-def getBinIndex(captureSiteStart, leftBound, rightBound, binsize):
+def get_bin_index(captureSiteStart, leftBound, rightBound, binsize):
     binbounds = np.arange(leftBound, rightBound, binsize)
     # -1 because 0-based indices
     return len(np.where(binbounds < captureSiteStart)[0]) - 1
 
 
-def getHighlightBinArgumentFromAnnotation(annotation_name, features, leftBound, rightBound, binsize, hlcolor='cyan'):
+def get_highlight_bin_argument_from_annotation(annotation_name, features, leftBound, rightBound, binsize, hlcolor='cyan'):
     '''
     takes an annotation table, a list of names of features in the table, the boundaries and binsize of the plot region
     and returns the argumentlist that can be passed to highlightbins in plotMatrix
@@ -389,8 +389,8 @@ def getHighlightBinArgumentFromAnnotation(annotation_name, features, leftBound, 
     if isinstance(hlcolor, list):
         if len(hlcolor) == len(features):
             for i, feature in features_df.iterrows():
-                hlstartbin = getBinIndex(feature['start'], leftBound, rightBound, binsize)
-                hlendbin = getBinIndex(feature['end'], leftBound, rightBound, binsize)
+                hlstartbin = get_bin_index(feature['start'], leftBound, rightBound, binsize)
+                hlendbin = get_bin_index(feature['end'], leftBound, rightBound, binsize)
                 hlargument.append((hlstartbin, hlendbin, hlcolor[i]))
         else:
             raise Exception(
@@ -398,8 +398,8 @@ def getHighlightBinArgumentFromAnnotation(annotation_name, features, leftBound, 
 
     else:
         for i, feature in features_df.iterrows():
-            hlstartbin = getBinIndex(feature['start'], leftBound, rightBound, binsize)
-            hlendbin = getBinIndex(feature['end'], leftBound, rightBound, binsize)
+            hlstartbin = get_bin_index(feature['start'], leftBound, rightBound, binsize)
+            hlendbin = get_bin_index(feature['end'], leftBound, rightBound, binsize)
             hlargument.append((hlstartbin, hlendbin, hlcolor))
 
     return hlargument
@@ -414,11 +414,30 @@ def same_length(*args):
     return True
 
 
+def get_region(region):
+    chrom, bounds = region.split(':')
+    start, end = [int(i) for i in bounds.split('-')]
+    return chrom, start, end
+
+
+def get_zoom_matrix(mat, region, subregion, binsize):
+    r_chrom, r_start, r_end = get_region(region)
+    s_chrom, s_start, s_end = get_region(subregion)
+
+    r_bins = (r_end - r_start) // binsize
+    r_bin_bounds = np.linspace(r_start, r_end, r_bins + 1)
+
+    s_start_bin_in_r = np.where(r_bin_bounds < s_start)[0][-1] + 1
+    s_end_bin_in_r = np.where(r_bin_bounds < s_end)[0][-1] + 1
+
+    return mat[s_start_bin_in_r: s_end_bin_in_r, s_start_bin_in_r: s_end_bin_in_r]
+
+
 def load_profiles(treatment_profile, control_profile, treatment_label, control_label, leftBound, rightBound,
                   capturebins):
     profiles = {}
     for k, file in zip([treatment_label, control_label], [treatment_profile, control_profile]):
-        profiletab = loadProfileTab(file, interval=(leftBound, rightBound))
+        profiletab = load_profile_tab(file, interval=(leftBound, rightBound))
         meanprofile = profiletab.loc[:, ~profiletab.columns.isin(['chr', 'start', 'end'])].mean(axis=1)
         totalnorm = 100000 / meanprofile.sum()
         # binnorm = 1000 / (meanprofile * totalnorm).max()
@@ -450,7 +469,7 @@ parser.add_argument('--control_label', '-cl',
                     help='name of the control condition to use for plot naming etc.'
                          'if not given the script tries to infer a name from the filename')
 parser.add_argument('--region', '-r', required=True,
-                    help='region to consider for plotting in the format of chr:start-stop')
+                    help='region the input matrices span and to consider for plotting in the format of chr:start-stop')
 parser.add_argument('--capture_bins', required=True,
                     help='oligo file used for processing with CCseqBasic denoting the bins in the matrix and profile to mask')
 parser.add_argument('--binsize', '-bs', default=1000, type=int,
@@ -501,8 +520,7 @@ parser.add_argument('--outputFilePrefix', '-o', required=True,
                     help='prefix to use for output files')
 args = parser.parse_args()
 
-chrom, bounds = args.region.split(':')
-leftBound, rightBound = [int(i) for i in bounds.split('-')]
+chrom, leftBound, rightBound = get_region(args.region)
 n_bins = (rightBound - leftBound) // args.binsize
 
 annotations = []
@@ -527,10 +545,10 @@ if args.annotation:
     number_of_annotation_axes = len(annotations)
 
 treatments = [np.loadtxt(file) for file in args.treatment]
-treatment_avg = computeAverageMatrix(treatments)
+treatment_avg = compute_average_matrix(treatments)
 
 controls = [np.loadtxt(file) for file in args.control]
-control_avg = computeAverageMatrix(controls)
+control_avg = compute_average_matrix(controls)
 
 # setting up figure layout
 #plt.rcParams['figure.constrained_layout.use'] = True
@@ -601,47 +619,47 @@ oligotab = pd.read_csv(args.capture_bins,
                        header=None,
                        names=['name', 'chrom', 'start', 'end'],
                        usecols=[0, 1, 2, 3])
-capturebins = [getBinIndex(r['start'], leftBound, rightBound, args.binsize) for i, r in oligotab.iterrows()]
+capturebins = [get_bin_index(r['start'], leftBound, rightBound, args.binsize) for i, r in oligotab.iterrows()]
 
 highlightbins = []
 if args.highlight_annotation:
-    highlightbins = getHighlightBinArgumentFromAnnotation(annotations[args.highlight_annotation - 1][0],
-                                                          args.highlight_features,
-                                                          leftBound,
-                                                          rightBound,
-                                                          args.binsize,
-                                                          'cyan')
+    highlightbins = get_highlight_bin_argument_from_annotation(annotations[args.highlight_annotation - 1][0],
+                                                               args.highlight_features,
+                                                               leftBound,
+                                                               rightBound,
+                                                               args.binsize,
+                                                               'cyan')
 
-treatment_ax = plotMatrix(treatment_ax,
-                          treatment_avg,
-                          gyorb,
-                          (leftBound, rightBound),
-                          capturebins=capturebins,
-                          highlightbins=highlightbins,
-                          vmin=args.compare_vMin,
-                          vmax=args.compare_vMax,
-                          subplot_label=args.treatment_label)
+treatment_ax = plot_matrix(treatment_ax,
+                           treatment_avg,
+                           gyorb,
+                           (leftBound, rightBound),
+                           capturebins=capturebins,
+                           highlightbins=highlightbins,
+                           vmin=args.compare_vMin,
+                           vmax=args.compare_vMax,
+                           subplot_label=args.treatment_label)
 
-control_ax = plotMatrix(control_ax,
-                        control_avg,
-                        gyorb,
-                        (leftBound, rightBound),
-                        capturebins=capturebins,
-                        highlightbins=highlightbins,
-                        vmin=args.compare_vMin,
-                        vmax=args.compare_vMax,
-                        mirror_horizontal=True,
-                        subplot_label=args.control_label)
+control_ax = plot_matrix(control_ax,
+                         control_avg,
+                         gyorb,
+                         (leftBound, rightBound),
+                         capturebins=capturebins,
+                         highlightbins=highlightbins,
+                         vmin=args.compare_vMin,
+                         vmax=args.compare_vMax,
+                         mirror_horizontal=True,
+                         subplot_label=args.control_label)
 
-diff_ax = plotMatrix(diff_ax,
-                     makeDiffMatrix(treatment_avg, control_avg),
-                     bwr,
-                     (leftBound, rightBound),
-                     capturebins=capturebins,
-                     highlightbins=highlightbins,
-                     vmin=args.diff_vMin,
-                     vmax=args.diff_vMax,
-                     subplot_label='-'.join((args.treatment_label, args.control_label)))
+diff_ax = plot_matrix(diff_ax,
+                      make_difference_matrix(treatment_avg, control_avg),
+                      bwr,
+                      (leftBound, rightBound),
+                      capturebins=capturebins,
+                      highlightbins=highlightbins,
+                      vmin=args.diff_vMin,
+                      vmax=args.diff_vMax,
+                      subplot_label='-'.join((args.treatment_label, args.control_label)))
 
 if any(profile_args):
     profiles = load_profiles(args.treatment_3plus, args.control_3plus,
@@ -650,28 +668,28 @@ if any(profile_args):
                              capturebins)
 
     for profile_ax in [profile_ax1, profile_ax2]:
-        ax = plotProfileOverlay(profile_ax,
-                                profiles,
-                                n_bins,
-                                (leftBound, rightBound),
-                                yrange=(0, args.profile_yMax),
-                                capturebins=capturebins,
-                                colors=('steelblue', 'gold'))
+        ax = plot_profile_overlay(profile_ax,
+                                  profiles,
+                                  n_bins,
+                                  (leftBound, rightBound),
+                                  yrange=(0, args.profile_yMax),
+                                  capturebins=capturebins,
+                                  colors=('steelblue', 'gold'))
 
 if annotations:
     for annotation_axs in [annotation_axs1, annotation_axs2]:
         for (annoax, (track, label, alternating, plottype, ylim, number_of_xticks)) in zip(annotation_axs, annotations):
-            ax = plotAnnotation(annoax,
-                                track,
-                                label,
-                                alternating,
-                                plottype,
-                                ylim,
-                                n_bins,
-                                leftBound,
-                                rightBound,
-                                chrom,
-                                xticknum=number_of_xticks)
+            ax = plot_annotation(annoax,
+                                 track,
+                                 label,
+                                 alternating,
+                                 plottype,
+                                 ylim,
+                                 n_bins,
+                                 leftBound,
+                                 rightBound,
+                                 chrom,
+                                 xticknum=number_of_xticks)
 
 fig1.tight_layout(h_pad = 0.5)
 fig2.tight_layout(h_pad = 0.5)
