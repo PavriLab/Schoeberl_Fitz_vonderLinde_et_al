@@ -128,6 +128,7 @@ def plot_annotation(ax,
                          end,
                          0,
                          number_of_bins)
+        ax.set_yticks(ylim)
 
     else:
         raise Exception("plottype not supported")
