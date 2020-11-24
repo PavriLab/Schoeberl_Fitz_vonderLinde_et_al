@@ -451,7 +451,7 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
 
 
 wyorb = clr.LinearSegmentedColormap.from_list('wyorb', ['White', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
-gorb = clr.LinearSegmentedColormap.from_list('gorb', ['lightgrey', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
+gyorb = clr.LinearSegmentedColormap.from_list('gorb', ['lightgrey', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
 gorb = clr.LinearSegmentedColormap.from_list('gorb', ['lightgrey', 'Orange', 'Red', 'Black'], N=256)
 bwr = plt.get_cmap('bwr')
 # chrom, leftBound, rightBound, binsize = 'chr12', 114435000, 114669000, 1000
