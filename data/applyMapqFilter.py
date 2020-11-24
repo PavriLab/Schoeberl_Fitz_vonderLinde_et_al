@@ -12,6 +12,7 @@ parser.add_argument('--output', '-o', required=True,
                     help='output bamfile')
 args = parser.parse_args()
 
+poor_q = 0
 with ps.AlignmentFile(args.input, 'r') as in_sam:
     out_bam = ps.AlignmentFile(args.output,
                                'wb',
@@ -26,6 +27,7 @@ with ps.AlignmentFile(args.input, 'r') as in_sam:
             break
 
         if alnseg.mapq < args.mapq:
+            poor_q += 1
             tmp = ps.AlignedSegment(header=out_bam.header)
             tmp.query_name = alnseg.query_name
             tmp.query_sequence = alnseg.query_sequence
@@ -38,3 +40,4 @@ with ps.AlignmentFile(args.input, 'r') as in_sam:
             out_bam.write(alnseg)
 
 out_bam.close()
+logging.info(f'reset {poor_q} alignments due to poor mapping quality')
