@@ -450,7 +450,8 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
 
 
 wyorb = clr.LinearSegmentedColormap.from_list('wyorb', ['White', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
-gyorb = clr.LinearSegmentedColormap.from_list('gyorb', ['lightgrey', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
+gorb = clr.LinearSegmentedColormap.from_list('gorb', ['lightgrey', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
+gorb = clr.LinearSegmentedColormap.from_list('gorb', ['lightgrey', 'Orange', 'Red', 'Black'], N=256)
 bwr = plt.get_cmap('bwr')
 # chrom, leftBound, rightBound, binsize = 'chr12', 114435000, 114669000, 1000
 
@@ -554,8 +555,8 @@ control_avg = compute_average_matrix(controls)
 #plt.rcParams['figure.constrained_layout.use'] = True
 fig1 = plt.figure(dpi=300)
 matrix_subplot_height = args.figwidth / 2
-annotation_height = 0.75
-profile_height = 2.25
+annotation_height = 0.5
+profile_height = 1.5
 hspace = 0.2
 
 profile_args = [args.treatment_3plus, args.control_3plus, args.profile_yMax]
@@ -632,7 +633,7 @@ if args.highlight_annotation:
 
 treatment_ax = plot_matrix(treatment_ax,
                            treatment_avg,
-                           gyorb,
+                           gorb,
                            (leftBound, rightBound),
                            capturebins=capturebins,
                            highlightbins=highlightbins,
@@ -642,7 +643,7 @@ treatment_ax = plot_matrix(treatment_ax,
 
 control_ax = plot_matrix(control_ax,
                          control_avg,
-                         gyorb,
+                         gorb,
                          (leftBound, rightBound),
                          capturebins=capturebins,
                          highlightbins=highlightbins,
