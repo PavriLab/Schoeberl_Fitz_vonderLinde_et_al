@@ -27,7 +27,7 @@ with ps.AlignmentFile(args.input, 'r') as in_sam:
 
         if alnseg.mapq < args.mapq:
             tmp = ps.AlignedSegment(header=out_bam.header)
-            tmp.name = alnseg.query_name
+            tmp.query_name = alnseg.query_name
             tmp.query_sequence = alnseg.query_sequence
             tmp.flag = 4
             tmp.query_qualities = alnseg.query_qualities
