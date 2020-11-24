@@ -28,6 +28,9 @@ TGCCGTAG        CCTCGTAG        125066  priB_d0_3_i9
 
 This information can retrieved via the seqmate site of the VBCF.
 
+### Modified CCseqBasic5.sh script
+In order to facilitate filtering of reads in terms of mapping quality to remove reads with a MAPQ score below 30, we had to modify the CCseqBasic script because it does not contain this option by default. The modification is simple and is just done by replacing the SAM to BAM conversion directly after alignment with bowtie with a SAM to BAM conversion which includes a MAPQ filtering. This step is facilitated by the `applyMapqFilter.py` script and simply resets all reads with a MAPQ < 30 to unaligned. This way the statistics are untouched and can be computed and plotted as usual. Low mapping reads are then part of the unaligned fraction.
+
 ### Plotting statistics
 The `plotTriCstats.py` is meant to generate a comprehensive view on the statistics the [CCseq](https://github.com/Hughes-Genome-Group/CCseqBasicS) pipeline produces. It requires the report files of the flashed and non-flashed reads of stage 3 (located in the F3 folder) and the the combined stats of stage 6 (located in the F6 folder) as well as the total number of reads entering the pipeline and the sample labels. E.g. for a sequencing run containing 9 samples a valid call of the script would be
 ```bash
