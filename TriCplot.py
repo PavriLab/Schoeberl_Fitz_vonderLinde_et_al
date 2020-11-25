@@ -338,7 +338,8 @@ def plot_profile_overlay(ax,
 
         if capturebins:
             for capturebin in capturebins:
-                ax.bar(capturebin + 0.5, ax.get_ylim()[1], align='center', width=0.75, color='black')
+                if capturebin is not None:
+                    ax.bar(capturebin + 0.5, ax.get_ylim()[1], align='center', width=0.75, color='black')
 
     ax.legend(loc='upper right')
     return ax
