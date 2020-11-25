@@ -399,7 +399,8 @@ def get_highlight_bin_argument_from_annotation(annotation_name, features, leftBo
             for i, feature in features_df.iterrows():
                 hlstartbin = get_bin_index(feature['start'], leftBound, rightBound, binsize)
                 hlendbin = get_bin_index(feature['end'], leftBound, rightBound, binsize)
-                hlargument.append((hlstartbin, hlendbin, hlcolor[i]))
+                if not (hlstartbin is None or hlendbin is None):
+                    hlargument.append((hlstartbin, hlendbin, hlcolor[i]))
         else:
             raise Exception(
                 'numbers of color has to match the number of features to highlight if multiple colors are passed')
@@ -408,7 +409,8 @@ def get_highlight_bin_argument_from_annotation(annotation_name, features, leftBo
         for i, feature in features_df.iterrows():
             hlstartbin = get_bin_index(feature['start'], leftBound, rightBound, binsize)
             hlendbin = get_bin_index(feature['end'], leftBound, rightBound, binsize)
-            hlargument.append((hlstartbin, hlendbin, hlcolor))
+            if not (hlstartbin is None or hlendbin is None):
+                hlargument.append((hlstartbin, hlendbin, hlcolor))
 
     return hlargument
 
