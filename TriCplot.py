@@ -44,7 +44,8 @@ def load_profile_tab(filename, interval=None):
 def add_annotation_marker(ax, annotation, increment, xmin, xmax):
     x = []
     tab = pd.read_csv(annotation, sep='\t')
-    for i, locus in tab.iterrows():
+    subset = tab.loc[(tab.start > xmin) & (tab.end < xmax), :]
+    for i, locus in subset.iterrows():
         start, end = locus['start'], locus['end']
         x1 = xmin if start < xmin else (start - xmin) * increment
         x2 = xmax if end > xmax else (end - xmin) * increment
@@ -55,10 +56,13 @@ def add_annotation_marker(ax, annotation, increment, xmin, xmax):
 
 def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=False):
     tab = pd.read_csv(annotation, sep='\t')
-    for i, locus in tab.iterrows():
+    subset = tab.loc[(tab.start > xmin) & (tab.end < xmax), :]
+    for i, locus in subset.iterrows():
         start, end = locus['start'], locus['end']
         x1 = xmin if start < xmin else (start - xmin) * increment
         x2 = xmax if end > xmax else (end - xmin) * increment
+
+        print(x1, x2)
         if alternating:
             if i % 2 == 0:
                 ax.add_line(Line2D([x1, x2], [0.425, 0.425], lw=5, solid_capstyle='butt'))
@@ -283,8 +287,8 @@ def plot_matrix(ax,
     ys = np.linspace(N / 2, N, 5) if not mirror_horizontal else np.linspace(-N, -N / 2, 5)
     for y, cmapval in zip(ys, np.linspace(vmin, vmax, 5)):
         ax.add_line(
-            Line2D([N - N * cbarwidth - 1, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
-        ax.text(N - N * cbarwidth - 1.5, y, '{:.01f}'.format(cmapval), ha='right', va='center')
+            Line2D([N - N * cbarwidth - N * 0.005, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
+        ax.text(N - N * cbarwidth - N * 0.0075, y, '{:.01f}'.format(cmapval), ha='right', va='center')
 
     ax.text(N + 1, 3 * N / 4 if not mirror_horizontal else -3 * N / 4, 'RPM', ha='left', va='center', rotation=90)
 
