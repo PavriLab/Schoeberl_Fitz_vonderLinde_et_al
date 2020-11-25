@@ -214,8 +214,9 @@ def plot_matrix(ax,
         greymap = clr.LinearSegmentedColormap.from_list('greymap', ['Grey', 'Grey'], N=256)
         capturemat = np.zeros(shape=mat.shape)
         for capturebin in capturebins:
-            capturemat[capturebin, :] = 1
-            capturemat[:, capturebin] = 1
+            if capturebin is not None:
+                capturemat[capturebin, :] = 1
+                capturemat[:, capturebin] = 1
 
         capturemat = np.triu(capturemat)
         capturemat = np.ma.masked_array(capturemat, capturemat == 0)
@@ -367,7 +368,9 @@ def make_difference_matrix(mat1, mat2):
 def get_bin_index(captureSiteStart, leftBound, rightBound, binsize):
     binbounds = np.arange(leftBound, rightBound, binsize)
     # -1 because 0-based indices
-    return len(np.where(binbounds < captureSiteStart)[0]) - 1
+    return len(np.where(binbounds < captureSiteStart)[0]) - 1 \
+           if not (captureSiteStart < binbounds[0] or captureSiteStart > binbounds[-1]) \
+           else None
 
 
 def get_highlight_bin_argument_from_annotation(annotation_name, features, leftBound, rightBound, binsize, hlcolor='cyan'):
@@ -443,10 +446,16 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
     for k, file in zip([treatment_label, control_label], [treatment_profile, control_profile]):
         profiletab = load_profile_tab(file, interval=(leftBound, rightBound))
         meanprofile = profiletab.loc[:, ~profiletab.columns.isin(['chr', 'start', 'end'])].mean(axis=1)
-        totalnorm = 100000 / meanprofile.sum()
+        if meanprofile.sum():
+            totalnorm = 100000 / meanprofile.sum()
+
+        else:
+            totalnorm = 1
+
         # binnorm = 1000 / (meanprofile * totalnorm).max()
         for capturebin in capturebins:
-            meanprofile.loc[capturebin] = 0  # setting capture site counts to 0
+            if capturebin is not None:
+                meanprofile.loc[capturebin] = 0  # setting capture site counts to 0
 
         profiles[k] = meanprofile * totalnorm  # * binnorm
 
@@ -624,6 +633,7 @@ oligotab = pd.read_csv(args.capture_bins,
                        header=None,
                        names=['name', 'chrom', 'start', 'end'],
                        usecols=[0, 1, 2, 3])
+
 capturebins = [get_bin_index(r['start'], leftBound, rightBound, args.binsize) for i, r in oligotab.iterrows()]
 
 highlightbins = []
