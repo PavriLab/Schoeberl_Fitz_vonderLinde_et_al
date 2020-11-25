@@ -1,6 +1,6 @@
 # setting number threads environment variable
 import os
-os.environ['NUMEXPR_NUM_THREADS'] = '8'
+os.environ['NUMEXPR_MAX_THREADS'] = '8'
 
 import numpy as np
 import matplotlib.colors as clr
@@ -161,7 +161,7 @@ def plot_matrix(ax,
                 highlightbins=None,
                 xlabel=None,
                 xticknum=0,
-                cbarwidth=0.05,
+                cbarwidth=0.025,
                 vmin=0,
                 vmax=50,
                 mirror_horizontal=False,
@@ -277,7 +277,7 @@ def plot_matrix(ax,
     cbarY = np.tile(np.linspace(N / 2, N, cmap.N).reshape(-1, 1), 2) \
         if not mirror_horizontal else \
         np.tile(np.linspace(-N, -N / 2, cmap.N).reshape(-1, 1), 2)
-    cbarX = np.tile(np.array([cbarwidth, N]), (cbarY.shape[0], 1))
+    cbarX = np.tile(np.array([N - N * cbarwidth, N]), (cbarY.shape[0], 1))
     cbarmesh = ax.pcolormesh(cbarX, cbarY, np.linspace(0, 1, cmap.N - 1).reshape(-1, 1), cmap=cmap, vmin=0, vmax=1)
 
     ys = np.linspace(N / 2, N, 5) if not mirror_horizontal else np.linspace(-N, -N / 2, 5)
