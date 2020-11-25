@@ -62,7 +62,6 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=Fal
         x1 = xmin if start < xmin else (start - xmin) * increment
         x2 = xmax if end > xmax else (end - xmin) * increment
 
-        print(x1, x2)
         if alternating:
             if i % 2 == 0:
                 ax.add_line(Line2D([x1, x2], [0.425, 0.425], lw=5, solid_capstyle='butt'))
