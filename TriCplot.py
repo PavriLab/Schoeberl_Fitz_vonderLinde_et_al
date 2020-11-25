@@ -1,3 +1,7 @@
+# setting number threads environment variable
+import os
+os.environ['NUMEXPR_NUM_THREADS'] = '8'
+
 import numpy as np
 import matplotlib.colors as clr
 import matplotlib.pyplot as plt
@@ -9,9 +13,6 @@ import pandas as pd
 import pyBigWig as pbw
 import logging
 import argparse as ap
-import os
-# setting number threads environment variable
-os.environ['NUMEXPR_NUM_THREADS'] = '8'
 # setting rcParams to enable editable text in Adobe Illustrator
 mpl.rcParams['pdf.fonttype'] = 42
 
@@ -160,7 +161,7 @@ def plot_matrix(ax,
                 highlightbins=None,
                 xlabel=None,
                 xticknum=0,
-                cbarwidth=5,
+                cbarwidth=0.05,
                 vmin=0,
                 vmax=50,
                 mirror_horizontal=False,
@@ -179,7 +180,7 @@ def plot_matrix(ax,
     :param xlabel:              xaxis label
                                 the annotation given at index -1 will be the bottom most annotation
     :param xticknum:            number of xticks to plot. xticklabels will be interpolated with np.linspace
-    :param cbarwidth:           width of the colorbar
+    :param cbarwidth:           width of the colorbar as fraction of x-axis length
     :param vmin:                minimum value of the colormap
     :param vmax:                maximum value of the colormap
     :param mirror_horizontal:   indicates if generated matrix plot should be mirrored at a horizontal line
@@ -203,7 +204,6 @@ def plot_matrix(ax,
     # Plot the heatmap triangle.
     X = A[:, 1].reshape(N + 1, N + 1)
     Y = A[:, 0].reshape(N + 1, N + 1)
-
     mesh = ax.pcolormesh(X, Y, np.flipud(C), cmap=cmap, vmin=vmin, vmax=vmax, zorder=2)
 
     # mark bin containing capturesite in grey
@@ -268,17 +268,17 @@ def plot_matrix(ax,
         ax.set_xlabel(xlabel)
 
     # plot colorbar
-    rect = patches.Rectangle((N - cbarwidth, N / 2), cbarwidth, N / 2, fill=False, edgecolor='black') \
+    rect = patches.Rectangle((N - N * cbarwidth, N / 2), N * cbarwidth, N / 2, fill=False, edgecolor='black') \
         if not mirror_horizontal else \
-        patches.Rectangle((N - cbarwidth, -N), cbarwidth, N / 2, fill=False, edgecolor='black')
+        patches.Rectangle((N - N * cbarwidth, -N), N * cbarwidth, N / 2, fill=False, edgecolor='black')
 
     ax.add_patch(rect)
 
     cbarY = np.tile(np.linspace(N / 2, N, cmap.N).reshape(-1, 1), 2) \
         if not mirror_horizontal else \
         np.tile(np.linspace(-N, -N / 2, cmap.N).reshape(-1, 1), 2)
-    cbarX = np.tile(np.array([N - cbarwidth, N]), (cbarY.shape[0], 1))
-    cbarmesh = ax.pcolormesh(cbarX, cbarY, np.linspace(0, 1, cmap.N).reshape(-1, 1), cmap=cmap, vmin=0, vmax=1)
+    cbarX = np.tile(np.array([cbarwidth, N]), (cbarY.shape[0], 1))
+    cbarmesh = ax.pcolormesh(cbarX, cbarY, np.linspace(0, 1, cmap.N - 1).reshape(-1, 1), cmap=cmap, vmin=0, vmax=1)
 
     ys = np.linspace(N / 2, N, 5) if not mirror_horizontal else np.linspace(-N, -N / 2, 5)
     for y, cmapval in zip(ys, np.linspace(vmin, vmax, 5)):
