@@ -283,8 +283,8 @@ def plot_matrix(ax,
     ys = np.linspace(N / 2, N, 5) if not mirror_horizontal else np.linspace(-N, -N / 2, 5)
     for y, cmapval in zip(ys, np.linspace(vmin, vmax, 5)):
         ax.add_line(
-            Line2D([N - cbarwidth - 1, N - cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
-        ax.text(N - cbarwidth - 1.5, y, '{:.01f}'.format(cmapval), ha='right', va='center')
+            Line2D([N - N * cbarwidth - 1, N - cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
+        ax.text(N - N * cbarwidth - 1.5, y, '{:.01f}'.format(cmapval), ha='right', va='center')
 
     ax.text(N + 1, 3 * N / 4 if not mirror_horizontal else -3 * N / 4, 'RPM', ha='left', va='center', rotation=90)
 
