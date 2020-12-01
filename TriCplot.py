@@ -465,10 +465,13 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
     return profiles
 
 
-wyorb = clr.LinearSegmentedColormap.from_list('wyorb', ['White', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
-gyorb = clr.LinearSegmentedColormap.from_list('gorb', ['lightgrey', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
-gorb = clr.LinearSegmentedColormap.from_list('gorb', ['lightgrey', 'Orange', 'Red', 'Black'], N=256)
-bwr = plt.get_cmap('bwr')
+def get_colormap(colors, N = 256):
+    return clr.LinearSegmentedColormap.from_list('custom', colors, N=N) if len(colors) > 1 else plt.get_cmap(*colors)
+
+#wyorb = clr.LinearSegmentedColormap.from_list('wyorb', ['White', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
+#gyorb = clr.LinearSegmentedColormap.from_list('gorb', ['lightgrey', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
+#gorb = clr.LinearSegmentedColormap.from_list('gorb', ['lightgrey', 'Orange', 'Red', 'Black'], N=256)
+#bwr = plt.get_cmap('bwr')
 # chrom, leftBound, rightBound, binsize = 'chr12', 114435000, 114669000, 1000
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
@@ -533,12 +536,23 @@ parser.add_argument('--diff_vMax', default = 15, type = float,
                     help = 'maximum value of colorbars in the difference matrix plots')
 parser.add_argument('--figwidth', default=10, type=float,
                     help='width of the generated figure. Height is computed accordingly.')
+parser.add_argument('--compare_colormap', default = 'lightgrey,orange,red,black',
+                    help = 'either a name of colormap predefined in matplotlib or a comma-separated list of colors'
+                           'where position of the color in the list corresponds to the value it represents'
+                           'with first = smallest, last = highest')
+parser.add_argument('--diff_colormap', default = 'bwr',
+                    help = 'either a name of colormap predefined in matplotlib or a comma-separated list of colors'
+                           'where position of the color in the list corresponds to the value it represents'
+                           'with first = smallest, last = highest')
 parser.add_argument('--outputFilePrefix', '-o', required=True,
                     help='prefix to use for output files')
 args = parser.parse_args()
 
 chrom, leftBound, rightBound = get_region(args.region)
 n_bins = (rightBound - leftBound) // args.binsize
+
+compare_cmap = get_colormap(args.compare_colormap.split(','))
+diff_cmap = get_colormap(args.diff_colormap.split(','))
 
 annotations = []
 number_of_annotation_axes = 0
@@ -650,7 +664,7 @@ if args.highlight_annotation:
 
 treatment_ax = plot_matrix(treatment_ax,
                            treatment_avg,
-                           gorb,
+                           compare_cmap,
                            (leftBound, rightBound),
                            capturebins=capturebins,
                            highlightbins=highlightbins,
@@ -660,7 +674,7 @@ treatment_ax = plot_matrix(treatment_ax,
 
 control_ax = plot_matrix(control_ax,
                          control_avg,
-                         gorb,
+                         compare_cmap,
                          (leftBound, rightBound),
                          capturebins=capturebins,
                          highlightbins=highlightbins,
@@ -671,7 +685,7 @@ control_ax = plot_matrix(control_ax,
 
 diff_ax = plot_matrix(diff_ax,
                       make_difference_matrix(treatment_avg, control_avg),
-                      bwr,
+                      diff_cmap,
                       (leftBound, rightBound),
                       capturebins=capturebins,
                       highlightbins=highlightbins,
