@@ -13,6 +13,7 @@ import pandas as pd
 import pyBigWig as pbw
 import logging
 import argparse as ap
+import regex as re
 # setting rcParams to enable editable text in Adobe Illustrator
 mpl.rcParams['pdf.fonttype'] = 42
 
@@ -51,7 +52,8 @@ def add_annotation_marker(ax, annotation, increment, xmin, xmax):
         x2 = xmax if end > xmax else (end - xmin) * increment
         x.append((x1 + x2) / 2)
 
-    ax.plot(x, [0.5] * len(x), '|')
+
+    ax.plot(x, [0.5] * len(x), '|', color='black')
 
 
 def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=False):
@@ -62,15 +64,17 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=Fal
         x1 = xmin if start < xmin else (start - xmin) * increment
         x2 = xmax if end > xmax else (end - xmin) * increment
 
+        color = 'grey' if re.match('S.', locus['name']) else 'black'
+
         if alternating:
             if i % 2 == 0:
-                ax.add_line(Line2D([x1, x2], [0.425, 0.425], lw=5, solid_capstyle='butt'))
+                ax.add_line(Line2D([x1, x2], [0.425, 0.425], lw=5, solid_capstyle='butt', color=color))
 
             else:
-                ax.add_line(Line2D([x1, x2], [0.575, 0.575], lw=5, solid_capstyle='butt'))
+                ax.add_line(Line2D([x1, x2], [0.575, 0.575], lw=5, solid_capstyle='butt', color=color))
 
         else:
-            ax.add_line(Line2D([x1, x2], [0.5, 0.5], lw=5, solid_capstyle='butt'))
+            ax.add_line(Line2D([x1, x2], [0.5, 0.5], lw=5, solid_capstyle='butt', color=color))
 
         if locus['name']:
             if i % 2 == 0:
@@ -98,7 +102,7 @@ def add_bigwig_track(ax, bigwig, chrom, start, end, xmin, xmax, smooth_track=Tru
     if smooth_track:
         values = smooth(values, smoothwindow)
 
-    ax.fill_between(np.linspace(xmin, xmax, len(values)), values)
+    ax.fill_between(np.linspace(xmin, xmax, len(values)), values, color='black')
 
 
 def plot_annotation(ax,
@@ -140,7 +144,6 @@ def plot_annotation(ax,
     if not xticknum:
         for loc in ['left', 'top', 'right', 'bottom']:
             ax.spines[loc].set_visible(False)
-
         ax.set_xticks([])
 
     else:
@@ -266,7 +269,8 @@ def plot_matrix(ax,
 
     if xticknum:
         ax.set_xticks(np.linspace(0, N, xticknum))
-        ax.set_xticklabels(['{val:,}'.format(val=i) for i in np.linspace(xrange[0], xrange[1], xticknum, dtype=int)])
+        ax.set_xticklabels(['{val:,}'.format(val=int(xrange[0]))] + [''] * (xticknum-2) + ['{val:,}'.format(val=int(xrange[1]))], fontsize=6, ha='left')
+        ax.xaxis.labelpad = 5
 
     if xlabel:
         ax.set_xlabel(xlabel)
@@ -341,7 +345,7 @@ def plot_profile_overlay(ax,
                 if capturebin is not None:
                     ax.bar(capturebin + 0.5, ax.get_ylim()[1], align='center', width=0.75, color='black')
 
-    ax.legend(loc='upper right')
+    ax.legend(loc='center right', bbox_to_anchor=(0.9,0.75))
     return ax
 
 
@@ -469,8 +473,8 @@ def get_colormap(colors, N = 256):
     return clr.LinearSegmentedColormap.from_list('custom', colors, N=N) if len(colors) > 1 else plt.get_cmap(*colors)
 
 #wyorb = clr.LinearSegmentedColormap.from_list('wyorb', ['White', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
-#gyorb = clr.LinearSegmentedColormap.from_list('gorb', ['lightgrey', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
-#gorb = clr.LinearSegmentedColormap.from_list('gorb', ['lightgrey', 'Orange', 'Red', 'Black'], N=256)
+#gyorb = clr.LinearSegmentedColormap.from_list('gorb', ['whitesmoke', 'Yellow', 'Orange', 'Red', 'Black'], N=256)
+#gorb = clr.LinearSegmentedColormap.from_list('gorb', ['whitesmoke', 'Orange', 'Red', 'Black'], N=256)
 #bwr = plt.get_cmap('bwr')
 # chrom, leftBound, rightBound, binsize = 'chr12', 114435000, 114669000, 1000
 
@@ -536,7 +540,7 @@ parser.add_argument('--diff_vMax', default = 15, type = float,
                     help = 'maximum value of colorbars in the difference matrix plots')
 parser.add_argument('--figwidth', default=10, type=float,
                     help='width of the generated figure. Height is computed accordingly.')
-parser.add_argument('--compare_colormap', default = 'lightgrey,orange,red,black',
+parser.add_argument('--compare_colormap', default = 'whitesmoke,orange,red,black',
                     help = 'either a name of colormap predefined in matplotlib or a comma-separated list of colors'
                            'where position of the color in the list corresponds to the value it represents'
                            'with first = smallest, last = highest')
@@ -585,41 +589,53 @@ control_avg = compute_average_matrix(controls)
 #plt.rcParams['figure.constrained_layout.use'] = True
 fig1 = plt.figure(dpi=300)
 matrix_subplot_height = args.figwidth / 2
-annotation_height = 0.5
-profile_height = 1.5
-hspace = 0.2
+annotation_height = 0.3
+profile_height = 1
+hspace = 0.15
+hspaceFig2 = hspace + 0.05
 
 profile_args = [args.treatment_3plus, args.control_3plus, args.profile_yMax]
 if any(profile_args):
     assert all(profile_args), 'all profile arguments have to be set if one is used'
-    number_of_annotation_axes += 1
+    number_of_annotation_axes += 1 # MAKE ALL NEW ANNOTATION STUFF DYNAMIC
     fig1_height = 2 * matrix_subplot_height + \
                   annotation_height * (number_of_annotation_axes - 1) + \
+                  (annotation_height if annotations else 0) + \
                   profile_height + \
-                  hspace * (number_of_annotation_axes + 1)
-    number_of_axes_fig1 = number_of_annotation_axes + 2
-    height_ratios_fig1 = [matrix_subplot_height / fig1_height, profile_height / fig1_height] + \
+                  hspace * (number_of_annotation_axes + 2)
+    number_of_axes_fig1 = number_of_annotation_axes + 3
+    height_ratios_fig1 = [matrix_subplot_height / fig1_height] + \
                          [annotation_height / fig1_height] * (number_of_annotation_axes - 1) + \
+                         [profile_height / fig1_height] + \
+                         ([annotation_height / fig1_height] if annotations else []) + \
                          [matrix_subplot_height / fig1_height]
 
     number_of_axes_fig2 = number_of_annotation_axes + 1
-    fig2_height = fig1_height - matrix_subplot_height - hspace
-    height_ratios_fig2 = [matrix_subplot_height / fig2_height, profile_height / fig2_height] + \
-                         [annotation_height / fig2_height] * (number_of_annotation_axes - 1)
+    fig2_height = matrix_subplot_height + \
+                  annotation_height * (number_of_annotation_axes) + \
+                  hspaceFig2 * number_of_annotation_axes
+    height_ratios_fig2 = [matrix_subplot_height / fig2_height] + \
+                         [annotation_height / fig2_height] * (number_of_annotation_axes - 1) + \
+                         [profile_height / fig1_height]
 
 else:
     fig1_height = 2 * matrix_subplot_height + \
                   annotation_height * (number_of_annotation_axes) + \
-                  hspace * (number_of_annotation_axes + 1)
-    number_of_axes_fig1 = number_of_annotation_axes + 2
+                  (annotation_height if annotations else 0) + \
+                  hspace * (number_of_annotation_axes + 2)
+    number_of_axes_fig1 = number_of_annotation_axes + 3
     height_ratios_fig1 = [matrix_subplot_height / fig1_height] + \
                          [annotation_height / fig1_height] * (number_of_annotation_axes) + \
+                         ([annotation_height / fig1_height] if annotations else []) + \
                          [matrix_subplot_height / fig1_height]
 
     number_of_axes_fig2 = number_of_annotation_axes + 1
-    fig2_height = fig1_height - matrix_subplot_height - hspace
+    fig2_height = matrix_subplot_height + \
+                  annotation_height * (number_of_annotation_axes) + \
+                  hspaceFig2 * number_of_annotation_axes
     height_ratios_fig2 = [matrix_subplot_height / fig2_height] + \
                          [annotation_height / fig2_height] * (number_of_annotation_axes)
+
 
 # compare figure
 fig1.set_figwidth(args.figwidth)
@@ -627,11 +643,13 @@ fig1.set_figheight(fig1_height)
 gridspec1 = gs.GridSpec(number_of_axes_fig1,
                         1,
                         height_ratios=height_ratios_fig1,
-                        figure=fig1)
+                        figure=fig1,
+                        hspace=hspace)
 treatment_ax = fig1.add_subplot(gridspec1[0])
 control_ax = fig1.add_subplot(gridspec1[-1])
-profile_ax1 = fig1.add_subplot(gridspec1[1]) if any(profile_args) else None
-annotation_axs1 = [fig1.add_subplot(gridspec1[i + 2]) for i in range(len(annotations))] if annotations else []
+profile_ax1 = fig1.add_subplot(gridspec1[number_of_annotation_axes]) if any(profile_args) else None
+annotation_axs1 = [fig1.add_subplot(gridspec1[i + 1]) for i in range(len(annotations))] if annotations else []
+secondLine2d_ax1 = fig1.add_subplot(gridspec1[-2]) if annotations else None
 
 # diff figure
 fig2 = plt.figure(dpi=300)
@@ -640,10 +658,11 @@ fig2.set_figheight(fig2_height)
 gridspec2 = gs.GridSpec(number_of_axes_fig2,
                         1,
                         height_ratios=height_ratios_fig2,
-                        figure=fig2)
+                        figure=fig2,
+                        hspace=hspaceFig2)
 diff_ax = fig2.add_subplot(gridspec2[0])
-profile_ax2 = fig2.add_subplot(gridspec2[1]) if any(profile_args) else None
-annotation_axs2 = [fig2.add_subplot(gridspec2[i + 2]) for i in range(len(annotations))] if annotations else []
+profile_ax2 = fig2.add_subplot(gridspec2[-1]) if any(profile_args) else None
+annotation_axs2 = [fig2.add_subplot(gridspec2[i + 1]) for i in range(len(annotations))] if annotations else []
 
 oligotab = pd.read_csv(args.capture_bins,
                        sep='\t',
@@ -668,6 +687,7 @@ treatment_ax = plot_matrix(treatment_ax,
                            (leftBound, rightBound),
                            capturebins=capturebins,
                            highlightbins=highlightbins,
+                           xticknum=10,
                            vmin=args.compare_vMin,
                            vmax=args.compare_vMax,
                            subplot_label=args.treatment_label)
@@ -678,6 +698,7 @@ control_ax = plot_matrix(control_ax,
                          (leftBound, rightBound),
                          capturebins=capturebins,
                          highlightbins=highlightbins,
+                         xticknum=10,
                          vmin=args.compare_vMin,
                          vmax=args.compare_vMax,
                          mirror_horizontal=True,
@@ -689,6 +710,7 @@ diff_ax = plot_matrix(diff_ax,
                       (leftBound, rightBound),
                       capturebins=capturebins,
                       highlightbins=highlightbins,
+                      xticknum=10,
                       vmin=args.diff_vMin,
                       vmax=args.diff_vMax,
                       subplot_label='-'.join((args.treatment_label, args.control_label)))
@@ -706,7 +728,7 @@ if any(profile_args):
                                   (leftBound, rightBound),
                                   yrange=(0, args.profile_yMax),
                                   capturebins=capturebins,
-                                  colors=('steelblue', 'gold'))
+                                  colors=('black', 'gold'))
 
 if annotations:
     for annotation_axs in [annotation_axs1, annotation_axs2]:
@@ -720,10 +742,21 @@ if annotations:
                                  n_bins,
                                  leftBound,
                                  rightBound,
-                                 chrom,
-                                 xticknum=number_of_xticks)
+                                 chrom)
 
-fig1.tight_layout(h_pad = 0.5)
-fig2.tight_layout(h_pad = 0.5)
+    # plot only the Line2d a second time for bottom matrix
+    ax = plot_annotation(secondLine2d_ax1, 
+                         annotations[0][0], 
+                         annotations[0][1], 
+                         annotations[0][2], 
+                         annotations[0][3], 
+                         annotations[0][4], 
+                         n_bins, 
+                         leftBound, 
+                         rightBound, 
+                         chrom)
+
+# fig1.tight_layout(pad = 3, h_pad = hspace)
+# fig2.tight_layout(pad = 3, h_pad = hspace)
 fig1.savefig(args.outputFilePrefix + '_compare.pdf')
 fig2.savefig(args.outputFilePrefix + '_difference.pdf')
