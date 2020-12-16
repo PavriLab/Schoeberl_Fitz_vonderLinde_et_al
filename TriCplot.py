@@ -52,19 +52,23 @@ def add_annotation_marker(ax, annotation, increment, xmin, xmax):
         x2 = xmax if end > xmax else (end - xmin) * increment
         x.append((x1 + x2) / 2)
 
+    ax.plot(x, [0.7] * len(x), '|', color='black', markeredgewidth=0.1)
 
-    ax.plot(x, [0.5] * len(x), '|', color='black')
 
-
-def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=False):
+def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=False, mirror_horizontal=False):
     tab = pd.read_csv(annotation, sep='\t')
     subset = tab.loc[(tab.start > xmin) & (tab.end < xmax), :]
+
+    name_exceptions = [['end', '7', '6', '5', '4_1', '1,2_1', '3_1', '4_2', '1,2_2', '3_2', 'Cα', 'Sα', 'Cε', 'Sε', 'Cγ2a', 'Sγ2a', 'Cγ2b', 'Sγ2b', 'Cγ1', 'Sγ1', 'Iγ1', 'Cγ3', 'Sγ3', 'Cμ', 'Sμ' ], 
+    ['', '3`CBE', '', '', '', '3`CBE', '', '', '3`CBE', '', 'α', '', 'ε', '', 'γ2a', '', 'γ2b', '', 'γ1', '', '', 'γ3', '', 'μ', '']]
+    loc_exceptions = [['4', '3b'], ['left', 'right']]
+
     for i, locus in subset.iterrows():
         start, end = locus['start'], locus['end']
         x1 = xmin if start < xmin else (start - xmin) * increment
         x2 = xmax if end > xmax else (end - xmin) * increment
 
-        color = 'grey' if re.match('S.', locus['name']) else 'black'
+        color = '#ef4136' if re.match('S.', locus['name']) else 'black'
 
         if alternating:
             if i % 2 == 0:
@@ -74,17 +78,36 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=Fal
                 ax.add_line(Line2D([x1, x2], [0.575, 0.575], lw=5, solid_capstyle='butt', color=color))
 
         else:
-            ax.add_line(Line2D([x1, x2], [0.5, 0.5], lw=5, solid_capstyle='butt', color=color))
+            if not mirror_horizontal:
+                ax.add_line(Line2D([x1, x2], [0.75, 0.75], lw=5, solid_capstyle='butt', color=color))
+            else:
+                ax.add_line(Line2D([x1, x2], [0.25, 0.25], lw=5, solid_capstyle='butt', color=color))
 
-        if locus['name']:
-            if i % 2 == 0:
-                ax.text((x2 - x1) / 2 + x1, 0.25 if alternating else 0.325, locus['name'], ha='center', va='top',
-                        fontsize=10)
+        if locus['name']: 
+            if alternating:
+                if i % 2 == 0:
+                    ax.text((x2 - x1) / 2 + x1, 0.325, 
+                    locus['name'] if locus['name'] not in name_exceptions else name_exceptions[1][name_exceptions[0].index(locus['name'])],
+                    ha='center' if locus['name'] not in loc_exceptions else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
+                    va='top', fontsize=10)
+
+                else:
+                    ax.text((x2 - x1) / 2 + x1, 0.675, 
+                    locus['name'] if locus['name'] not in name_exceptions else name_exceptions[1][name_exceptions[0].index(locus['name'])],
+                    ha='center' if locus['name'] not in loc_exceptions else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
+                    va='bottom', fontsize=10)
 
             else:
-                ax.text((x2 - x1) / 2 + x1, 0.75 if alternating else 0.675, locus['name'], ha='center', va='bottom',
-                        fontsize=10)
-
+                if not mirror_horizontal:
+                    ax.text((x2 - x1) / 2 + x1, 0.5, 
+                    locus['name'] if locus['name'] not in name_exceptions else name_exceptions[1][name_exceptions[0].index(locus['name'])],
+                    ha='center' if locus['name'] not in loc_exceptions else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
+                    va='top', fontsize=10)
+                else:
+                    ax.text((x2 - x1) / 2 + x1, 0.5, 
+                    locus['name'] if locus['name'] not in name_exceptions else name_exceptions[1][name_exceptions[0].index(locus['name'])],
+                    ha='center' if locus['name'] not in loc_exceptions else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
+                    va='bottom', fontsize=10)
 
 def smooth(values, smoothwindow):
     if len(values) % smoothwindow:
@@ -102,7 +125,7 @@ def add_bigwig_track(ax, bigwig, chrom, start, end, xmin, xmax, smooth_track=Tru
     if smooth_track:
         values = smooth(values, smoothwindow)
 
-    ax.fill_between(np.linspace(xmin, xmax, len(values)), values, color='black')
+    ax.fill_between(np.linspace(xmin, xmax, len(values)), values, color='grey', linewidth=0.05)
 
 
 def plot_annotation(ax,
@@ -116,17 +139,20 @@ def plot_annotation(ax,
                     end,
                     chrom,
                     scaling=1000,
-                    xticknum=None):
+                    xticknum=None,
+                    mirror_horizontal=False):
     increment = number_of_bins / (end - start)
     ax.set_ylim(bottom=ylim[0], top=ylim[1])
     ax.set_yticks([])
     ax.set_ylabel(ylabel)
 
     if plottype == 'Line2D':
-        add_annotation_line2D(ax, track, increment, start, end, alternating)
+        add_annotation_line2D(ax, track, increment, start, end, alternating, mirror_horizontal)
 
     elif plottype == 'Marker':
         add_annotation_marker(ax, track, increment, start, end)
+        ax.set_ylabel(ylabel, rotation='horizontal', ha='right', va='center')
+
 
     elif plottype == 'bigwig':
         add_bigwig_track(ax,
@@ -137,6 +163,7 @@ def plot_annotation(ax,
                          0,
                          number_of_bins)
         ax.set_yticks(ylim)
+        ax.yaxis.set_label_position('right')
 
     else:
         raise Exception("plottype not supported")
@@ -269,37 +296,36 @@ def plot_matrix(ax,
 
     if xticknum:
         ax.set_xticks(np.linspace(0, N, xticknum))
-        ax.set_xticklabels(['{val:,}'.format(val=int(xrange[0]))] + [''] * (xticknum-2) + ['{val:,}'.format(val=int(xrange[1]))], fontsize=6, ha='left')
-        ax.xaxis.labelpad = 5
 
     if xlabel:
         ax.set_xlabel(xlabel)
 
     # plot colorbar
-    rect = patches.Rectangle((N - N * cbarwidth, N / 2), N * cbarwidth, N / 2, fill=False, edgecolor='black') \
-        if not mirror_horizontal else \
-        patches.Rectangle((N - N * cbarwidth, -N), N * cbarwidth, N / 2, fill=False, edgecolor='black')
+    if not mirror_horizontal:
+        rect = patches.Rectangle((N - N * cbarwidth, N / 2), N * cbarwidth, N / 2, fill=False, edgecolor='black') 
 
-    ax.add_patch(rect)
+        ax.add_patch(rect)
 
-    cbarY = np.tile(np.linspace(N / 2, N, cmap.N).reshape(-1, 1), 2) \
-        if not mirror_horizontal else \
-        np.tile(np.linspace(-N, -N / 2, cmap.N).reshape(-1, 1), 2)
-    cbarX = np.tile(np.array([N - N * cbarwidth, N]), (cbarY.shape[0], 1))
-    cbarmesh = ax.pcolormesh(cbarX, cbarY, np.linspace(0, 1, cmap.N - 1).reshape(-1, 1), cmap=cmap, vmin=0, vmax=1)
+        cbarY = np.tile(np.linspace(N / 2, N, cmap.N).reshape(-1, 1), 2)
+        cbarX = np.tile(np.array([N - N * cbarwidth, N]), (cbarY.shape[0], 1))
+        cbarmesh = ax.pcolormesh(cbarX, cbarY, np.linspace(0, 1, cmap.N - 1).reshape(-1, 1), cmap=cmap, vmin=0, vmax=1)
 
-    ys = np.linspace(N / 2, N, 5) if not mirror_horizontal else np.linspace(-N, -N / 2, 5)
-    for y, cmapval in zip(ys, np.linspace(vmin, vmax, 5)):
-        ax.add_line(
-            Line2D([N - N * cbarwidth - N * 0.005, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
-        ax.text(N - N * cbarwidth - N * 0.0075, y, '{:.01f}'.format(cmapval), ha='right', va='center')
+        ys = np.linspace(N / 2, N, 5)
+        for y, cmapval in zip(ys, np.linspace(vmin, vmax, 5)):
+            ax.add_line(
+                Line2D([N - N * cbarwidth - N * 0.005, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
+            ax.text(N - N * cbarwidth - N * 0.0075, y, '{:.01f}'.format(cmapval), ha='right', va='center')
 
-    ax.text(N + 1, 3 * N / 4 if not mirror_horizontal else -3 * N / 4, 'RPM', ha='left', va='center', rotation=90)
+        ax.text(N + 1, 3 * N / 4 , 'RPM', ha='left', va='center', rotation=90)
 
     if subplot_label:
         ax.text(0, N if not mirror_horizontal else -N, subplot_label,
                 ha='left',
                 va='top' if not mirror_horizontal else 'bottom', fontsize=15)
+
+    # add chromosome location
+    if mirror_horizontal: 
+        ax.text(N-20, -N, f"Chr 12: {'{val:,}'.format(val=int(xrange[0]))},000-{'{val:,}'.format(val=int(xrange[1]))},000", ha='right')
 
     return ax
 
@@ -345,7 +371,7 @@ def plot_profile_overlay(ax,
                 if capturebin is not None:
                     ax.bar(capturebin + 0.5, ax.get_ylim()[1], align='center', width=0.75, color='black')
 
-    ax.legend(loc='center right', bbox_to_anchor=(0.9,0.75))
+    ax.legend(loc=(0, 0.5), frameon=False, handlelength=1)
     return ax
 
 
@@ -597,7 +623,7 @@ hspaceFig2 = hspace + 0.05
 profile_args = [args.treatment_3plus, args.control_3plus, args.profile_yMax]
 if any(profile_args):
     assert all(profile_args), 'all profile arguments have to be set if one is used'
-    number_of_annotation_axes += 1 # MAKE ALL NEW ANNOTATION STUFF DYNAMIC
+    number_of_annotation_axes += 1
     fig1_height = 2 * matrix_subplot_height + \
                   annotation_height * (number_of_annotation_axes - 1) + \
                   (annotation_height if annotations else 0) + \
@@ -613,6 +639,7 @@ if any(profile_args):
     number_of_axes_fig2 = number_of_annotation_axes + 1
     fig2_height = matrix_subplot_height + \
                   annotation_height * (number_of_annotation_axes) + \
+                  profile_height + \
                   hspaceFig2 * number_of_annotation_axes
     height_ratios_fig2 = [matrix_subplot_height / fig2_height] + \
                          [annotation_height / fig2_height] * (number_of_annotation_axes - 1) + \
@@ -687,7 +714,6 @@ treatment_ax = plot_matrix(treatment_ax,
                            (leftBound, rightBound),
                            capturebins=capturebins,
                            highlightbins=highlightbins,
-                           xticknum=10,
                            vmin=args.compare_vMin,
                            vmax=args.compare_vMax,
                            subplot_label=args.treatment_label)
@@ -698,7 +724,6 @@ control_ax = plot_matrix(control_ax,
                          (leftBound, rightBound),
                          capturebins=capturebins,
                          highlightbins=highlightbins,
-                         xticknum=10,
                          vmin=args.compare_vMin,
                          vmax=args.compare_vMax,
                          mirror_horizontal=True,
@@ -710,7 +735,6 @@ diff_ax = plot_matrix(diff_ax,
                       (leftBound, rightBound),
                       capturebins=capturebins,
                       highlightbins=highlightbins,
-                      xticknum=10,
                       vmin=args.diff_vMin,
                       vmax=args.diff_vMax,
                       subplot_label='-'.join((args.treatment_label, args.control_label)))
@@ -728,7 +752,7 @@ if any(profile_args):
                                   (leftBound, rightBound),
                                   yrange=(0, args.profile_yMax),
                                   capturebins=capturebins,
-                                  colors=('black', 'gold'))
+                                  colors=('black', '#fc7e00'))
 
 if annotations:
     for annotation_axs in [annotation_axs1, annotation_axs2]:
@@ -754,7 +778,8 @@ if annotations:
                          n_bins, 
                          leftBound, 
                          rightBound, 
-                         chrom)
+                         chrom,
+                         mirror_horizontal=True)
 
 # fig1.tight_layout(pad = 3, h_pad = hspace)
 # fig2.tight_layout(pad = 3, h_pad = hspace)
