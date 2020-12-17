@@ -59,9 +59,10 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=Fal
     tab = pd.read_csv(annotation, sep='\t')
     subset = tab.loc[(tab.start > xmin) & (tab.end < xmax), :]
 
-    name_exceptions = [['end', '7', '6', '5', '4_1', '1,2_1', '3_1', '4_2', '1,2_2', '3_2', 'Cα', 'Sα', 'Cε', 'Sε', 'Cγ2a', 'Sγ2a', 'Cγ2b', 'Sγ2b', 'Cγ1', 'Sγ1', 'Iγ1', 'Cγ3', 'Sγ3', 'Cμ', 'Sμ' ], 
-    ['', '3`CBE', '', '', '', '3`CBE', '', '', '3`CBE', '', 'α', '', 'ε', '', 'γ2a', '', 'γ2b', '', 'γ1', '', '', 'γ3', '', 'μ', '']]
-    loc_exceptions = [['4', '3b'], ['left', 'right']]
+    name_exceptions = [['end', '7', '6', '5', '4_1', '1,2_1', '3_1', '4_2', '1,2_2', '3_2', 'Cα', 'Sα', 'Cα1', 'Sα1', 'Cα2', 'Sα2', 'Cε', 'Sε', 'Cγ2a', 'Sγ2a', 'Cγ2b', 'Sγ2b', 'Cγ1', 'Sγ1', 'Iγ1', 'Cγ2', 'Sγ2', 'Cγ3', 'Sγ3', 'Cγ4', 'Sγ4', 'Cμ', 'Sμ', 'Cδ'], 
+        ['', '', '', "3'CBE", '', "3'RR1", '', '', "3'RR2", '', 'α', '', 'α1', '', 'α2', '', 'ε', '', 'γ2a', '', 'γ2b', '', 'γ1', '', '', 'γ2', '', 'γ3', '', 'γ4', '', 'μ', '', 'δ']]
+    loc_exceptions = [['5', '4', '3b', 'Cα', 'Cα1', 'Cα2', 'Cε', 'Cγ2a', 'Cγ2b', 'Cγ1', 'Cγ2', 'Cγ3', 'Cγ4', 'Cμ', 'Eμ'], 
+        ['right', 'center', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left']]
 
     for i, locus in subset.iterrows():
         start, end = locus['start'], locus['end']
@@ -87,26 +88,26 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=Fal
             if alternating:
                 if i % 2 == 0:
                     ax.text((x2 - x1) / 2 + x1, 0.325, 
-                    locus['name'] if locus['name'] not in name_exceptions else name_exceptions[1][name_exceptions[0].index(locus['name'])],
-                    ha='center' if locus['name'] not in loc_exceptions else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
+                    locus['name'] if locus['name'] not in name_exceptions[0] else name_exceptions[1][name_exceptions[0].index(locus['name'])],
+                    ha='center' if locus['name'] not in loc_exceptions[0] else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
                     va='top', fontsize=10)
 
                 else:
                     ax.text((x2 - x1) / 2 + x1, 0.675, 
-                    locus['name'] if locus['name'] not in name_exceptions else name_exceptions[1][name_exceptions[0].index(locus['name'])],
-                    ha='center' if locus['name'] not in loc_exceptions else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
+                    locus['name'] if locus['name'] not in name_exceptions[0] else name_exceptions[1][name_exceptions[0].index(locus['name'])],
+                    ha='center' if locus['name'] not in loc_exceptions[0] else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
                     va='bottom', fontsize=10)
 
             else:
                 if not mirror_horizontal:
                     ax.text((x2 - x1) / 2 + x1, 0.5, 
-                    locus['name'] if locus['name'] not in name_exceptions else name_exceptions[1][name_exceptions[0].index(locus['name'])],
-                    ha='center' if locus['name'] not in loc_exceptions else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
+                    locus['name'] if locus['name'] not in name_exceptions[0] else name_exceptions[1][name_exceptions[0].index(locus['name'])],
+                    ha='center' if locus['name'] not in loc_exceptions[0] else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
                     va='top', fontsize=10)
                 else:
                     ax.text((x2 - x1) / 2 + x1, 0.5, 
-                    locus['name'] if locus['name'] not in name_exceptions else name_exceptions[1][name_exceptions[0].index(locus['name'])],
-                    ha='center' if locus['name'] not in loc_exceptions else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
+                    locus['name'] if locus['name'] not in name_exceptions[0] else name_exceptions[1][name_exceptions[0].index(locus['name'])],
+                    ha='center' if locus['name'] not in loc_exceptions[0] else loc_exceptions[1][loc_exceptions[0].index(locus['name'])],
                     va='bottom', fontsize=10)
 
 def smooth(values, smoothwindow):
@@ -302,7 +303,7 @@ def plot_matrix(ax,
 
     # plot colorbar
     if not mirror_horizontal:
-        rect = patches.Rectangle((N - N * cbarwidth, N / 2), N * cbarwidth, N / 2, fill=False, edgecolor='black') 
+        rect = patches.Rectangle((N - N * cbarwidth, N / 2), N * cbarwidth, N / 2, fill=False, edgecolor='white') 
 
         ax.add_patch(rect)
 
