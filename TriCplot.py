@@ -29,14 +29,11 @@ def get_regional_matrix(contactMatrix, intervalstarts, start, end, csr=False):
     return contactMatrix if not csr else contactMatrix.toarray()
 
 
-def load_profile_tab(filename, interval=None):
+def load_profile_table(filename):
     tab = pd.read_csv(filename, sep='\t')
     header = [s.strip("'") for s in open(filename, 'r').readline()[1:].rstrip().split('\t')]
     tab.columns = header
     tab.sort_values(by=['chr', 'start'], inplace=True)
-
-    if interval:
-        tab = tab.loc[(tab['start'] >= interval[0]) & (tab['start'] < interval[1]), :].reset_index(drop=True)
 
     return tab
 
@@ -447,7 +444,8 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
                   capturebins):
     profiles = {}
     for k, file in zip([treatment_label, control_label], [treatment_profile, control_profile]):
-        profiletab = load_profile_tab(file, interval=(leftBound, rightBound))
+        profiletab = load_profile_table(file)
+
         meanprofile = profiletab.loc[:, ~profiletab.columns.isin(['chr', 'start', 'end'])].mean(axis=1)
         if meanprofile.sum():
             totalnorm = 100000 / meanprofile.sum()
@@ -460,6 +458,9 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
             if capturebin is not None:
                 meanprofile.loc[capturebin] = 0  # setting capture site counts to 0
 
+        meanprofile = meanprofile \
+                          .loc[(meanprofile['start'] >= leftBound) & (meanprofile['start'] < rightBound), :] \
+                          .reset_index(drop=True)
         profiles[k] = meanprofile * totalnorm  # * binnorm
 
     return profiles
