@@ -458,10 +458,11 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
             if capturebin is not None:
                 meanprofile.loc[capturebin] = 0  # setting capture site counts to 0
 
-        meanprofile = meanprofile \
-                          .loc[(meanprofile['start'] >= leftBound) & (meanprofile['start'] < rightBound), :] \
+        profiletab['meanprofile'] = meanprofile
+        profiletab = profiletab \
+                          .loc[(profiletab['start'] >= leftBound) & (profiletab['start'] < rightBound), :] \
                           .reset_index(drop=True)
-        profiles[k] = meanprofile * totalnorm  # * binnorm
+        profiles[k] = profiletab['meanprofile'] * totalnorm  # * binnorm
 
     return profiles
 
