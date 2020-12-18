@@ -30,14 +30,11 @@ def get_regional_matrix(contactMatrix, intervalstarts, start, end, csr=False):
     return contactMatrix if not csr else contactMatrix.toarray()
 
 
-def load_profile_tab(filename, interval=None):
+def load_profile_table(filename):
     tab = pd.read_csv(filename, sep='\t')
     header = [s.strip("'") for s in open(filename, 'r').readline()[1:].rstrip().split('\t')]
     tab.columns = header
     tab.sort_values(by=['chr', 'start'], inplace=True)
-
-    if interval:
-        tab = tab.loc[(tab['start'] >= interval[0]) & (tab['start'] < interval[1]), :].reset_index(drop=True)
 
     return tab
 
@@ -52,7 +49,7 @@ def add_annotation_marker(ax, annotation, increment, xmin, xmax):
         x2 = xmax if end > xmax else (end - xmin) * increment
         x.append((x1 + x2) / 2)
 
-    ax.plot(x, [0.7] * len(x), '|', color='black', markeredgewidth=0.1)
+    ax.plot(x, [0.6] * len(x), '|', color='black', markeredgewidth=0.1)
 
 
 def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=False, mirror_horizontal=False):
@@ -326,7 +323,7 @@ def plot_matrix(ax,
 
     # add chromosome location
     if mirror_horizontal: 
-        ax.text(N-20, -N, f"Chr 12: {'{val:,}'.format(val=int(xrange[0]))},000-{'{val:,}'.format(val=int(xrange[1]))},000", ha='right')
+        ax.text(N-2, -N, f"Chr 12: {'{val:,}'.format(val=int(xrange[0]))},000-{'{val:,}'.format(val=int(xrange[1]))},000", ha='right')
 
     return ax
 
@@ -478,7 +475,8 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
                   capturebins):
     profiles = {}
     for k, file in zip([treatment_label, control_label], [treatment_profile, control_profile]):
-        profiletab = load_profile_tab(file, interval=(leftBound, rightBound))
+        profiletab = load_profile_table(file)
+        
         meanprofile = profiletab.loc[:, ~profiletab.columns.isin(['chr', 'start', 'end'])].mean(axis=1)
         if meanprofile.sum():
             totalnorm = 100000 / meanprofile.sum()
@@ -491,7 +489,11 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
             if capturebin is not None:
                 meanprofile.loc[capturebin] = 0  # setting capture site counts to 0
 
-        profiles[k] = meanprofile * totalnorm  # * binnorm
+        profiletab['meanprofile'] = meanprofile
+        profiletab = profiletab \
+                          .loc[(profiletab['start'] >= leftBound) & (profiletab['start'] < rightBound), :] \
+                          .reset_index(drop=True)
+        profiles[k] = profiletab['meanprofile'] * totalnorm  # * binnorm
 
     return profiles
 
