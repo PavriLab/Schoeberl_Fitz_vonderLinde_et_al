@@ -1291,7 +1291,7 @@ if [ "${ONLY_TRIC}" -eq "0" ]; then
             echo "python3 applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.sam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam"
             python3 /groups/pavri/bioinfo/daniel/TriC/utils/applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.sam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam
             #echo "samtools view -hb ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam"
-            samtools view -hb ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam
+            #samtools view -hb ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam
             ls -lht ${flashstatus}_REdig_unfiltered.bam
             rm -f ${flashstatus}_REdig_unfiltered.sam
 
@@ -1328,8 +1328,10 @@ if [ "${ONLY_TRIC}" -eq "0" ]; then
 
             flashstatus="NONFLASHED"
             rm -f ${flashstatus}FLASHED_REdig.fastq
-            echo "samtools view -hb ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam"
-            samtools view -hb ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam
+            echo "python3 applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.sam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam"
+            python3 /groups/pavri/bioinfo/daniel/TriC/utils/applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.sam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam
+            #echo "samtools view -hb ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam"
+            #samtools view -hb ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam
             ls -lht ${flashstatus}_REdig_unfiltered.bam
             rm -f ${flashstatus}_REdig_unfiltered.sam
 
