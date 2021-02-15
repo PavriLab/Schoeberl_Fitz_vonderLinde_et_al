@@ -55,13 +55,15 @@ def add_annotation_marker(ax, annotation, increment, xmin, xmax):
 def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=False, mirror_horizontal=False):
     tab = pd.read_csv(annotation, sep='\t')
     subset = tab.loc[(tab.start > xmin) & (tab.end < xmax), :]
+    
+    mpl.rcParams['text.usetex'] = True
 
     for i, locus in subset.iterrows():
         start, end = locus['start'], locus['end']
         x1 = xmin if start < xmin else (start - xmin) * increment
         x2 = xmax if end > xmax else (end - xmin) * increment
 
-        color = '#ef4136' if re.match('S.', locus['name']) else 'black'
+        color = 'black' if pd.isna(locus['color']) else locus['color']
 
         if alternating:
             if i % 2 == 0:
@@ -76,30 +78,34 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=Fal
             else:
                 ax.add_line(Line2D([x1, x2], [0.25, 0.25], lw=5, solid_capstyle='butt', color=color))
 
+
         if alternating:
             if i % 2 == 0:
                 ax.text((x2 - x1) / 2 + x1, 0.325, 
-                '' if pd.isna(locus['display']) else locus['display'],
+                '' if pd.isna(locus['display_name']) else locus['display_name'],
                 ha='center' if pd.isna(locus['pos']) else locus['pos'],
                 va='top', fontsize=10)
 
             else:
                 ax.text((x2 - x1) / 2 + x1, 0.675, 
-                '' if pd.isna(locus['display']) else locus['display'],
+                '' if pd.isna(locus['display_name']) else locus['display_name'],
                 ha='center' if pd.isna(locus['pos']) else locus['pos'],
                 va='bottom', fontsize=10)
 
         else:
             if not mirror_horizontal:
                 ax.text((x2 - x1) / 2 + x1, 0.5, 
-                '' if pd.isna(locus['display']) else locus['display'],
+                '' if pd.isna(locus['display_name']) else locus['display_name'],
                 ha='center' if pd.isna(locus['pos']) else locus['pos'],
                 va='top', fontsize=10)
             else:
                 ax.text((x2 - x1) / 2 + x1, 0.5, 
-                '' if pd.isna(locus['display']) else locus['display'],
+                '' if pd.isna(locus['display_name']) else locus['display_name'],
                 ha='center' if pd.isna(locus['pos']) else locus['pos'],
                 va='bottom', fontsize=10)
+            
+    mpl.rcParams['text.usetex'] = False
+
 
 def smooth(values, smoothwindow):
     if len(values) % smoothwindow:
