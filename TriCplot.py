@@ -318,7 +318,7 @@ def plot_matrix(ax,
                 Line2D([N - N * cbarwidth - N * 0.005, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
             ax.text(N - N * cbarwidth - N * 0.0075, y, '{:.01f}'.format(cmapval), ha='right', va='center')
 
-        ax.text(N + 1, 3 * N / 4 , 'RPM', ha='left', va='center', rotation=90)
+        ax.text(N + 1, 3 * N / 4 , 'Normalized Contacts', ha='left', va='center', rotation=90)
 
     if subplot_label:
         ax.text(0, N if not mirror_horizontal else -N, subplot_label,
