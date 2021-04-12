@@ -218,6 +218,7 @@ def plot_matrix(ax,
     :param vmax:                maximum value of the colormap
     :param mirror_horizontal:   indicates if generated matrix plot should be mirrored at a horizontal line
     :param subplot_label:       label of the matrix, None = no label
+    :param colorbar_label:      label of the colorbar, Default = 'Normalized Interaction counts'
 
     :return:                    plt.Axes
     '''
@@ -318,7 +319,7 @@ def plot_matrix(ax,
                 Line2D([N - N * cbarwidth - N * 0.005, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
             ax.text(N - N * cbarwidth - N * 0.0075, y, '{:.01f}'.format(cmapval), ha='right', va='center')
 
-        ax.text(N + 1, 3 * N / 4 , 'Normalized Contacts', ha='left', va='center', rotation=90)
+        ax.text(N + 1, 3 * N / 4 , 'Normalized Interaction counts', ha='left', va='center', rotation=90)
 
     if subplot_label:
         ax.text(0, N if not mirror_horizontal else -N, subplot_label,
@@ -386,16 +387,11 @@ def compute_average_matrix(matrices):
 
 
 def make_difference_matrix(mat1, mat2):
-    sum1 = mat1.sum()
-    sum2 = mat2.sum()
+    # calculate the % of counts from mat1 if sum(mat1, mat2), throws unnecessary warnings if both bins are 0
+    with np.errstate(divide='ignore',invalid='ignore'): percentual_diff = (mat1 / (mat1 + mat2)) * 100
+    percentual_diff = np.nan_to_num(percentual_diff) 
 
-    if sum1 > sum2:
-        mat1 = mat1 * sum2 / sum1
-
-    else:
-        mat2 = mat2 * sum1 / sum2
-
-    return mat1 - mat2
+    return percentual_diff
 
 
 def get_bin_index(captureSiteStart, leftBound, rightBound, binsize):
@@ -567,9 +563,9 @@ parser.add_argument('--compare_vMin', default = 0, type = float,
                     help = 'minimum value of colorbars in the compare matrix plots')
 parser.add_argument('--compare_vMax', default = 50, type = float,
                     help = 'maximum value of colorbars in the compare matrix plots')
-parser.add_argument('--diff_vMin', default = -15, type = float,
+parser.add_argument('--diff_vMin', default = 0, type = float,
                     help = 'minimum value of colorbars in the difference matrix plots')
-parser.add_argument('--diff_vMax', default = 15, type = float,
+parser.add_argument('--diff_vMax', default = 100, type = float,
                     help = 'maximum value of colorbars in the difference matrix plots')
 parser.add_argument('--figwidth', default=10, type=float,
                     help='width of the generated figure. Height is computed accordingly.')
