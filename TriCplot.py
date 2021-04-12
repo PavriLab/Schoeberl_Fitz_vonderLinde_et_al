@@ -197,7 +197,8 @@ def plot_matrix(ax,
                 vmin=0,
                 vmax=50,
                 mirror_horizontal=False,
-                subplot_label=None):
+                subplot_label=None,
+                colorbar_label='Normalized Interaction counts'):
     '''
     plotting function for triC results
 
@@ -319,7 +320,7 @@ def plot_matrix(ax,
                 Line2D([N - N * cbarwidth - N * 0.005, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
             ax.text(N - N * cbarwidth - N * 0.0075, y, '{:.01f}'.format(cmapval), ha='right', va='center')
 
-        ax.text(N + 1, 3 * N / 4 , 'Normalized Interaction counts', ha='left', va='center', rotation=90)
+        ax.text(N + 1, 3 * N / 4 , colorbar_label, ha='left', va='center', rotation=90)
 
     if subplot_label:
         ax.text(0, N if not mirror_horizontal else -N, subplot_label,
@@ -746,7 +747,8 @@ diff_ax = plot_matrix(diff_ax,
                       vmin=args.diff_vMin,
                       vmax=args.diff_vMax,
                       xticknum=10,
-                      subplot_label='-'.join((args.treatment_label, args.control_label)))
+                      subplot_label='-'.join((args.treatment_label, args.control_label)),
+                      colorbar_label='Percentage of treatment counts in bin')
 
 if any(profile_args):
     profiles = load_profiles(args.treatment_3plus, args.control_3plus,
