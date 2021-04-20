@@ -1,6 +1,7 @@
 import argparse as ap
 import matplotlib.pyplot as plt
 import logging
+import regex as re
 
 def readLines(file, identifiers, split = False):
     '''
@@ -36,28 +37,27 @@ def readLines(file, identifiers, split = False):
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 parser = ap.ArgumentParser()
-parser.add_argument('-f6', '--F6fullreport', nargs = '+',
-                    help = 'space-separated list of full combined report file located in the F6 folder')
-parser.add_argument('-f3f', '--F3fullreportFlashed', nargs = '+',
-                    help = 'space-separated list of full report of flashed reads located in the F3 folder')
-parser.add_argument('-f3n', '--F3fullreportNonflashed', nargs = '+',
-                    help = 'space-separated list of full report of nonflashed reads located in the F3 folder')
-parser.add_argument('-rn', '--readNum', nargs = '+', type = int,
-                    help = 'space-separated list of total number of read pairs')
-parser.add_argument('-s', '--sampleNames', nargs = '+',
-                    help = 'space-separated list of sample names corresponding to input files')
+parser.add_argument('-d', '--ccseq_dir', nargs = '+',
+                    help = 'space-separated list of output folder from ccseq pipeline')
+parser.add_argument('-s', '--sampleNames',
+                    help = 'optional, space-separated list of sample names corresponding to input files or named according to input directory if not specified')
 parser.add_argument('--fig_width', default = 12, type = int,
                     help = 'width of the figure in inches')
 parser.add_argument('-o', '--outFile', required = True,
                     help = 'file to save the plot to')
 args = parser.parse_args()
 
-if not all(len(a) == len(args.F6fullreport) for a in [args.F3fullreportFlashed,
-                                                      args.F3fullreportNonflashed,
-                                                      args.readNum,
-                                                      args.sampleNames]):
-    raise Exception('all input parameters must have the same number of arguments')
-
+args.F6fullreport = [i + '/F6_greenGraphs_combined_sample_CS5/COMBINED_report_CS5.txt' for i in args.ccseq_dir]
+args.F3fullreportFlashed = [i + '/F3_orangeGraphs_sample_CS5/FLASHED_REdig_report_CS5.txt' for i in args.ccseq_dir]
+args.F3fullreportNonflashed = [i + '/F3_orangeGraphs_sample_CS5/NONFLASHED_REdig_report_CS5.txt' for i in args.ccseq_dir]
+if args.sampleNames == None: args.sampleNames = [i.split('/')[-1] for i in args.ccseq_dir]
+args.readNum = list()
+logs = [i + '/F1_beforeCCanalyser_sample_CS5/read_trimming.log' for i in args.ccseq_dir]
+for log in logs:
+    log = open(log, 'r')
+    rn = re.findall(r'\d+ sequences processed in total', log.read())
+    rn = re.findall('\d+', rn[0])
+    args.readNum.append(int(rn[0]))
 
 fnfkeys = {'11' : 'number of reads',
            '11b': 'number of reads with capture',
