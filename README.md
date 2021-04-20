@@ -32,12 +32,16 @@ This information can retrieved via the seqmate site of the VBCF.
 In order to facilitate filtering of reads in terms of mapping quality to remove reads with a MAPQ score below 30, we had to modify the CCseqBasic script because it does not contain this option by default. The modification is simple and is just done by replacing the SAM to BAM conversion directly after alignment with bowtie with a SAM to BAM conversion which includes a MAPQ filtering. This step is facilitated by the `applyMapqFilter.py` script and simply resets all reads with a MAPQ < 30 to unaligned. This way the statistics are untouched and can be computed and plotted as usual. Low mapping reads are then part of the unaligned fraction.
 
 ### Plotting statistics
-The `plotTriCstats.py` is meant to generate a comprehensive view on the statistics the [CCseq](https://github.com/Hughes-Genome-Group/CCseqBasicS) pipeline produces. It requires the report files of the flashed and non-flashed reads of stage 3 (located in the F3 folder) and the the combined stats of stage 6 (located in the F6 folder) as well as the total number of reads entering the pipeline which are read from the trimming log file (located in the F1 folder) and the sample labels. It suffices to specify the folder(s) where these report folders are located. E.g. for a sequencing run containing 9 samples a valid call of the script would be
+The `plotTriCstats.py` is meant to generate a comprehensive view on the statistics the [CCseq](https://github.com/Hughes-Genome-Group/CCseqBasicS) pipeline produces. It requires the report files of the flashed and non-flashed reads of stage 3 (located in the F3 folder) and the the combined stats of stage 6 (located in the F6 folder) as well as the total number of reads entering the pipeline and the sample labels. E.g. for a sequencing run containing 9 samples a valid call of the script would be
 ```bash
-python3 plotTriCstats.py -d TriC_7_Emu*
+python3 plotTriCstats.py -f6 CCseq/TriC_7_*/F6*/COMBINED_report_CS5.txt \
+                         -f3f CCseq/TriC_7_*/F3*/FLASHED_REdig_report_CS5.txt \
+                         -f3n CCseq/TriC_7_*/F3*/NONFLASHED_REdig_report_CS5.txt \
+                         -rn 4088719 4572065 4859024 5031120 4834634 4942035 6261844 5649615 5372841 \
+                         -s mESC_1 mESC_2 mESC_3 priB_d0_1 priB_d0_2 priB_d0_3 priB_d2_1 priB_d2_2 priB_d2_3 \
                          -o plots/TriC_7_Emu_stats.pdf
 ```
-where the wildcard is used to just address all existing folders that are supposed to be analysed. 
+where the wildcard is used to just address all existing folder. **The script is sensitive to the order the folders are given to it, meaning that it requires that all folders and additional information (readcount, sample name) are given in the same order as the folders. E.g. for mESC_1 the folders as well as the readcount have to be at the first place of the list passed to the script. So make sure this is the case, otherwise the results will be not interpretable.**
 
 ### Summing single capture interaction files
 If you are using multiple probes in one sample the pipeline will produce an interaction file for each probe separately. This is usually not what we want and we thus need to recombine them to a single interaction file. This is done with the `sumInteractionFiles.py`, which just sums the counts for the individual restriction fragments and writes the result including the maximum count to a new file. An example command looks like follows:
