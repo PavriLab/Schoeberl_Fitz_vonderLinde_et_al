@@ -198,6 +198,7 @@ def plot_matrix(ax,
                 vmax=50,
                 mirror_horizontal=False,
                 subplot_label=None,
+                colorbar_ticks = True,
                 colorbar_label='Normalized Interaction counts'):
     '''
     plotting function for triC results
@@ -315,10 +316,11 @@ def plot_matrix(ax,
         cbarmesh = ax.pcolormesh(cbarX, cbarY, np.linspace(0, 1, cmap.N - 1).reshape(-1, 1), cmap=cmap, vmin=0, vmax=1)
 
         ys = np.linspace(N / 2, N, 5)
-        for y, cmapval in zip(ys, np.linspace(vmin, vmax, 5)):
-            ax.add_line(
-                Line2D([N - N * cbarwidth - N * 0.005, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
-            ax.text(N - N * cbarwidth - N * 0.0075, y, '{:.01f}'.format(cmapval), ha='right', va='center')
+        if colorbar_ticks:
+            for y, cmapval in zip(ys, np.linspace(vmin, vmax, 5)):
+                ax.add_line(
+                    Line2D([N - N * cbarwidth - N * 0.005, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
+                ax.text(N - N * cbarwidth - N * 0.0075, y, '{:.01f}'.format(cmapval), ha='right', va='center')
 
         ax.text(N + 1, 3 * N / 4 , colorbar_label, ha='left', va='center', rotation=90)
 
@@ -390,7 +392,7 @@ def compute_average_matrix(matrices):
 def make_difference_matrix(mat1, mat2):
     # calculate the % of counts from mat1 if sum(mat1, mat2), throws unnecessary warnings if both bins are 0
     with np.errstate(divide='ignore',invalid='ignore'): percentual_diff = (mat1 / (mat1 + mat2)) * 100
-    percentual_diff = np.nan_to_num(percentual_diff) 
+    percentual_diff = np.nan_to_num(percentual_diff, nan=50) - 50
 
     return percentual_diff
 
@@ -564,9 +566,9 @@ parser.add_argument('--compare_vMin', default = 0, type = float,
                     help = 'minimum value of colorbars in the compare matrix plots')
 parser.add_argument('--compare_vMax', default = 50, type = float,
                     help = 'maximum value of colorbars in the compare matrix plots')
-parser.add_argument('--diff_vMin', default = 0, type = float,
+parser.add_argument('--diff_vMin', default = -50, type = float,
                     help = 'minimum value of colorbars in the difference matrix plots')
-parser.add_argument('--diff_vMax', default = 100, type = float,
+parser.add_argument('--diff_vMax', default = 50, type = float,
                     help = 'maximum value of colorbars in the difference matrix plots')
 parser.add_argument('--figwidth', default=10, type=float,
                     help='width of the generated figure. Height is computed accordingly.')
@@ -747,8 +749,9 @@ diff_ax = plot_matrix(diff_ax,
                       vmin=args.diff_vMin,
                       vmax=args.diff_vMax,
                       xticknum=10,
-                      subplot_label='-'.join((args.treatment_label, args.control_label)),
-                      colorbar_label='Percentage of treatment counts in bin')
+                      subplot_label=' - '.join((args.treatment_label, args.control_label)),
+                      colorbar_ticks=False,
+                      colorbar_label='Proportion of treatment (red) vs ctrl (blue) per bin')
 
 if any(profile_args):
     profiles = load_profiles(args.treatment_3plus, args.control_3plus,
