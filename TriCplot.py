@@ -676,8 +676,8 @@ parser.add_argument('--diff_colormap', default = 'bwr',
                     help = 'either a name of colormap predefined in matplotlib or a comma-separated list of colors'
                            'where position of the color in the list corresponds to the value it represents'
                            'with first = smallest, last = highest')
-parser.add_argument('--flipped', default=True, type=bool,
-                    help="flipping of the matirces and annotation so that the locus is displayed in 5' to 3' direction. Default is True.")
+parser.add_argument('--flipped', action='store_true',
+                    help="flipping of the matirces and annotation so that the locus is displayed in 5' to 3' direction. Default is False.")
 parser.add_argument('--outputFilePrefix', '-o', required=True,
                     help='prefix to use for output files')
 args = parser.parse_args()
