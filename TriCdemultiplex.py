@@ -51,12 +51,12 @@ def fastqWriter(outhandles, writerQueue, regularExpressions, patterns, lock, pro
                 if key:
                     for stream, read, readnumber in zip(filechunks[key], (r1, r2), [1, 2]):
                         stream.write(bam2fq(read, readnumber, key))
-                        counter[key] += 1
+                    counter[key] += 1
 
                 else:
                     for stream, read, readnumber in zip(filechunks['unknown'], (r1, r2), [1, 2]):
                         stream.write(bam2fq(read, readnumber, 'unknown'))
-                        counter['unknown'] += 1
+                    counter['unknown'] += 1
 
                 del BC, B2, r1, r2
 
@@ -68,6 +68,10 @@ def fastqWriter(outhandles, writerQueue, regularExpressions, patterns, lock, pro
                 for filehandle, stream in zip(outhandles[key], streams):
                     try:
                         filehandle.write(stream.getvalue())
+                        # needed to empty the file buffer which would
+                        # otherwise result in not all reads being written
+                        # to files
+                        filehandle.flush()
 
                     except OSError as e:
                         logging.info(repr(e))
