@@ -1,5 +1,7 @@
 # setting number threads environment variable
 import os
+
+from numpy.lib.function_base import flip
 os.environ['NUMEXPR_MAX_THREADS'] = '8'
 
 import numpy as np
@@ -39,70 +41,124 @@ def load_profile_table(filename):
     return tab
 
 
-def add_annotation_marker(ax, annotation, increment, xmin, xmax):
+def add_annotation_marker(ax, annotation, increment, xmin, xmax, flipped):
     x = []
     tab = pd.read_csv(annotation, sep='\t')
     subset = tab.loc[(tab.start > xmin) & (tab.end < xmax), :]
+
     for i, locus in subset.iterrows():
-        start, end = locus['start'], locus['end']
-        x1 = xmin if start < xmin else (start - xmin) * increment
-        x2 = xmax if end > xmax else (end - xmin) * increment
+        if flipped:
+            start, end = locus['start'], locus['end']
+            x1 = xmin if end < xmin else (xmax - end) * increment
+            x2 = xmax if end > xmax else (xmax - start) * increment
+        else:
+            start, end = locus['start'], locus['end']
+            x1 = xmin if start < xmin else (start - xmin) * increment
+            x2 = xmax if end > xmax else (end - xmin) * increment
         x.append((x1 + x2) / 2)
 
     ax.plot(x, [0.6] * len(x), '|', color='black', markeredgewidth=0.1)
 
 
-def add_annotation_line2D(ax, annotation, increment, xmin, xmax, alternating=False, mirror_horizontal=False):
+def add_annotation_line2D(ax, annotation, increment, xmin, xmax, flipped, alternating=False, mirror_horizontal=False):
     tab = pd.read_csv(annotation, sep='\t')
     subset = tab.loc[(tab.start > xmin) & (tab.end < xmax), :]
     
     mpl.rcParams['text.usetex'] = True
 
-    for i, locus in subset.iterrows():
-        start, end = locus['start'], locus['end']
-        x1 = xmin if start < xmin else (start - xmin) * increment
-        x2 = xmax if end > xmax else (end - xmin) * increment
+    if flipped:
+        for i, locus in subset.iterrows():
+            start, end = locus['start'], locus['end']
+            x1 = xmin if end < xmin else (xmax - end) * increment
+            x2 = xmax if end > xmax else (xmax - start) * increment
 
-        color = 'black' if pd.isna(locus['color']) else locus['color']
+            color = 'black' if pd.isna(locus['color']) else locus['color']
 
-        if alternating:
-            if i % 2 == 0:
-                ax.add_line(Line2D([x1, x2], [0.425, 0.425], lw=5, solid_capstyle='butt', color=color))
+            if alternating:
+                if i % 2 == 0:
+                    ax.add_line(Line2D([x1, x2], [0.425, 0.425], lw=5, solid_capstyle='butt', color=color))
 
-            else:
-                ax.add_line(Line2D([x1, x2], [0.575, 0.575], lw=5, solid_capstyle='butt', color=color))
-
-        else:
-            if not mirror_horizontal:
-                ax.add_line(Line2D([x1, x2], [0.75, 0.75], lw=5, solid_capstyle='butt', color=color))
-            else:
-                ax.add_line(Line2D([x1, x2], [0.25, 0.25], lw=5, solid_capstyle='butt', color=color))
-
-
-        if alternating:
-            if i % 2 == 0:
-                ax.text((x2 - x1) / 2 + x1, 0.325, 
-                '' if pd.isna(locus['display_name']) else locus['display_name'],
-                ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                va='top', fontsize=10)
+                else:
+                    ax.add_line(Line2D([x1, x2], [0.575, 0.575], lw=5, solid_capstyle='butt', color=color))
 
             else:
-                ax.text((x2 - x1) / 2 + x1, 0.675, 
-                '' if pd.isna(locus['display_name']) else locus['display_name'],
-                ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                va='bottom', fontsize=10)
+                if not mirror_horizontal:
+                    ax.add_line(Line2D([x1, x2], [0.75, 0.75], lw=5, solid_capstyle='butt', color=color))
+                else:
+                    ax.add_line(Line2D([x1, x2], [0.25, 0.25], lw=5, solid_capstyle='butt', color=color))
 
-        else:
-            if not mirror_horizontal:
-                ax.text((x2 - x1) / 2 + x1, 0.5, 
-                '' if pd.isna(locus['display_name']) else locus['display_name'],
-                ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                va='top', fontsize=10)
+
+            if alternating:
+                if i % 2 == 0:
+                    ax.text((x2 - x1) / 2 + x1, 0.325, 
+                    '' if pd.isna(locus['display_name']) else locus['display_name'],
+                    ha='center' if pd.isna(locus['pos']) else locus['pos'],
+                    va='top', fontsize=10)
+
+                else:
+                    ax.text((x2 - x1) / 2 + x1, 0.675, 
+                    '' if pd.isna(locus['display_name']) else locus['display_name'],
+                    ha='center' if pd.isna(locus['pos']) else locus['pos'],
+                    va='bottom', fontsize=10)
+
             else:
-                ax.text((x2 - x1) / 2 + x1, 0.5, 
-                '' if pd.isna(locus['display_name']) else locus['display_name'],
-                ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                va='bottom', fontsize=10)
+                if not mirror_horizontal:
+                    ax.text((x2 - x1) / 2 + x1, 0.5, 
+                    '' if pd.isna(locus['display_name']) else locus['display_name'],
+                    ha='center' if pd.isna(locus['pos']) else locus['pos'],
+                    va='top', fontsize=10)
+                else:
+                    ax.text((x2 - x1) / 2 + x1, 0.5, 
+                    '' if pd.isna(locus['display_name']) else locus['display_name'],
+                    ha='center' if pd.isna(locus['pos']) else locus['pos'],
+                    va='bottom', fontsize=10)
+
+    else:
+        for i, locus in subset.iterrows():
+            start, end = locus['start'], locus['end']
+            x1 = xmin if start < xmin else (start - xmin) * increment
+            x2 = xmax if end > xmax else (end - xmin) * increment
+
+            color = 'black' if pd.isna(locus['color']) else locus['color']
+
+            if alternating:
+                if i % 2 == 0:
+                    ax.add_line(Line2D([x1, x2], [0.425, 0.425], lw=5, solid_capstyle='butt', color=color))
+
+                else:
+                    ax.add_line(Line2D([x1, x2], [0.575, 0.575], lw=5, solid_capstyle='butt', color=color))
+
+            else:
+                if not mirror_horizontal:
+                    ax.add_line(Line2D([x1, x2], [0.75, 0.75], lw=5, solid_capstyle='butt', color=color))
+                else:
+                    ax.add_line(Line2D([x1, x2], [0.25, 0.25], lw=5, solid_capstyle='butt', color=color))
+
+
+            if alternating:
+                if i % 2 == 0:
+                    ax.text((x2 - x1) / 2 + x1, 0.325, 
+                    '' if pd.isna(locus['display_name']) else locus['display_name'],
+                    ha='center' if pd.isna(locus['pos']) else locus['pos'],
+                    va='top', fontsize=10)
+
+                else:
+                    ax.text((x2 - x1) / 2 + x1, 0.675, 
+                    '' if pd.isna(locus['display_name']) else locus['display_name'],
+                    ha='center' if pd.isna(locus['pos']) else locus['pos'],
+                    va='bottom', fontsize=10)
+
+            else:
+                if not mirror_horizontal:
+                    ax.text((x2 - x1) / 2 + x1, 0.5, 
+                    '' if pd.isna(locus['display_name']) else locus['display_name'],
+                    ha='center' if pd.isna(locus['pos']) else locus['pos'],
+                    va='top', fontsize=10)
+                else:
+                    ax.text((x2 - x1) / 2 + x1, 0.5, 
+                    '' if pd.isna(locus['display_name']) else locus['display_name'],
+                    ha='center' if pd.isna(locus['pos']) else locus['pos'],
+                    va='bottom', fontsize=10)
             
     mpl.rcParams['text.usetex'] = False
 
@@ -117,11 +173,14 @@ def smooth(values, smoothwindow):
     return np.nanmean(values.reshape(rows, smoothwindow), axis=1)
 
 
-def add_bigwig_track(ax, bigwig, chrom, start, end, xmin, xmax, smooth_track=True, smoothwindow=100):
+def add_bigwig_track(ax, bigwig, chrom, start, end, xmin, xmax, flipped, smooth_track=True, smoothwindow=100):
     bw = pbw.open(bigwig)
     values = np.array(bw.values(chrom, int(start), int(end)))
     if smooth_track:
         values = smooth(values, smoothwindow)
+
+    if flipped:
+        values = np.flip(values)
 
     ax.fill_between(np.linspace(xmin, xmax, len(values)), values, color='grey', linewidth=0.05)
 
@@ -138,17 +197,18 @@ def plot_annotation(ax,
                     chrom,
                     scaling=1000,
                     xticknum=None,
-                    mirror_horizontal=False):
+                    mirror_horizontal=False,
+                    flipped=True):
     increment = number_of_bins / (end - start)
     ax.set_ylim(bottom=ylim[0], top=ylim[1])
     ax.set_yticks([])
     ax.set_ylabel(ylabel)
 
     if plottype == 'Line2D':
-        add_annotation_line2D(ax, track, increment, start, end, alternating, mirror_horizontal)
+        add_annotation_line2D(ax, track, increment, start, end, flipped, alternating, mirror_horizontal)
 
     elif plottype == 'Marker':
-        add_annotation_marker(ax, track, increment, start, end)
+        add_annotation_marker(ax, track, increment, start, end, flipped)
         ax.set_ylabel(ylabel, rotation='horizontal', ha='right', va='center')
 
 
@@ -159,7 +219,8 @@ def plot_annotation(ax,
                          start,
                          end,
                          0,
-                         number_of_bins)
+                         number_of_bins,
+                         flipped)
         ax.set_yticks(ylim)
         ax.yaxis.set_label_position('right')
 
@@ -188,6 +249,7 @@ def plot_matrix(ax,
                 cmap,
                 xrange,
                 chrom,
+                flipped,
                 scaling=1000,
                 capturebins=None,
                 highlightbins=None,
@@ -197,7 +259,9 @@ def plot_matrix(ax,
                 vmin=0,
                 vmax=50,
                 mirror_horizontal=False,
-                subplot_label=None):
+                subplot_label=None,
+                colorbar_ticks = True,
+                colorbar_label='Normalized Interaction counts'):
     '''
     plotting function for triC results
 
@@ -206,6 +270,8 @@ def plot_matrix(ax,
     :param cmap:                colormap to use for plotting
     :param xrange:              tuple of integer coordinates in bp of the genomic region plotted in the matrix
     :param chrom:               string naming the chromosome of the locus
+    :param chrom:               boolean indicating whether the matrix should be displayed in 5 prime 3 prime 
+                                direction (flipped=True)
     :param scaling:             divisor for scaling the xrange
     :param capturebins:         bins containing the capture probes (optional)
     :param highlightbins:       list of tuples of startbin, endbin and highlightcolor for bins to highlight
@@ -218,6 +284,7 @@ def plot_matrix(ax,
     :param vmax:                maximum value of the colormap
     :param mirror_horizontal:   indicates if generated matrix plot should be mirrored at a horizontal line
     :param subplot_label:       label of the matrix, None = no label
+    :param colorbar_label:      label of the colorbar, Default = 'Normalized Interaction counts'
 
     :return:                    plt.Axes
     '''
@@ -230,6 +297,10 @@ def plot_matrix(ax,
     # Mask the upper triangle
     C = np.ma.masked_array(C, C == 0)
 
+    # Check for flipped locus:
+    if flipped:
+        C = np.rot90(np.fliplr(C), 3)
+
     # Transformation matrix for rotating the heatmap.
     A = np.array([(y, x) for x in range(N, -1, -1) for y in range(N + 1)])
     t = np.array([[1, 0.5], [-1, 0.5]]) if not mirror_horizontal else np.array([[-1, 0.5], [1, 0.5]])
@@ -239,15 +310,24 @@ def plot_matrix(ax,
     X = A[:, 1].reshape(N + 1, N + 1)
     Y = A[:, 0].reshape(N + 1, N + 1)
     mesh = ax.pcolormesh(X, Y, np.flipud(C), cmap=cmap, vmin=vmin, vmax=vmax, zorder=2)
+    # mesh = ax.pcolormesh(X, Y, C, cmap=cmap, vmin=vmin, vmax=vmax, zorder=2)
 
     # mark bin containing capturesite in grey
     if capturebins:
         greymap = clr.LinearSegmentedColormap.from_list('greymap', ['Grey', 'Grey'], N=256)
         capturemat = np.zeros(shape=mat.shape)
-        for capturebin in capturebins:
-            if capturebin is not None:
-                capturemat[capturebin, :] = 1
-                capturemat[:, capturebin] = 1
+        
+        # flip if necessary
+        if flipped:
+            for capturebin in capturebins:
+                if capturebin is not None:
+                    capturemat[N-capturebin, :] = 1
+                    capturemat[:, N-capturebin] = 1
+        else:
+            for capturebin in capturebins:
+                if capturebin is not None:
+                    capturemat[capturebin, :] = 1
+                    capturemat[:, capturebin] = 1
 
         capturemat = np.triu(capturemat)
         capturemat = np.ma.masked_array(capturemat, capturemat == 0)
@@ -257,10 +337,17 @@ def plot_matrix(ax,
         for hlstartbin, hlendbin, hlclr in highlightbins:
             hlmap = clr.LinearSegmentedColormap.from_list(hlclr, [hlclr, hlclr], N=256)
             hlmat = np.zeros(shape=mat.shape)
-            if not hlendbin == None:
-                hlidx = np.arange(hlstartbin, hlendbin + 1)
+
+            if flipped:
+                if not hlendbin == None:
+                    hlidx = np.arange(N-hlendbin, N-hlstartbin + 1)
+                else:
+                    hlidx = N-hlstartbin
             else:
-                hlidx = hlstartbin
+                if not hlendbin == None:
+                    hlidx = np.arange(hlstartbin, hlendbin + 1)
+                else:
+                    hlidx = hlstartbin
 
             hlmat[hlidx, :] = 1
             hlmat[:, hlidx] = 1
@@ -313,12 +400,13 @@ def plot_matrix(ax,
         cbarmesh = ax.pcolormesh(cbarX, cbarY, np.linspace(0, 1, cmap.N - 1).reshape(-1, 1), cmap=cmap, vmin=0, vmax=1)
 
         ys = np.linspace(N / 2, N, 5)
-        for y, cmapval in zip(ys, np.linspace(vmin, vmax, 5)):
-            ax.add_line(
-                Line2D([N - N * cbarwidth - N * 0.005, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
-            ax.text(N - N * cbarwidth - N * 0.0075, y, '{:.01f}'.format(cmapval), ha='right', va='center')
+        if colorbar_ticks:
+            for y, cmapval in zip(ys, np.linspace(vmin, vmax, 5)):
+                ax.add_line(
+                    Line2D([N - N * cbarwidth - N * 0.005, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
+                ax.text(N - N * cbarwidth - N * 0.0075, y, '{:.01f}'.format(cmapval), ha='right', va='center')
 
-        ax.text(N + 1, 3 * N / 4 , 'RPM', ha='left', va='center', rotation=90)
+        ax.text(N + 1, 3 * N / 4 , colorbar_label, ha='left', va='center', rotation=90)
 
     if subplot_label:
         ax.text(0, N if not mirror_horizontal else -N, subplot_label,
@@ -337,6 +425,7 @@ def plot_profile_overlay(ax,
                          number_of_bins,
                          xrange,
                          colors,
+                         flipped,
                          yrange=None,
                          scaling=1000,
                          capturebins=None,
@@ -365,15 +454,26 @@ def plot_profile_overlay(ax,
     for loc in ['left', 'top', 'right']:
         ax.spines[loc].set_visible(False)
 
+    # iterate through profiles for plotting, flip the dict if necessary
     for color, (profilename, profile) in zip(colors, profiledict.items()):
+        
+        if flipped:
+            profile = list(reversed(profile))
+
         ax.plot(np.arange(number_of_bins) + 0.5, profile, color=color, label=profilename)
 
         if capturebins:
             for capturebin in capturebins:
                 if capturebin is not None:
+                    if flipped:
+                        capturebin = len(profile) - capturebin -1
+
                     ax.bar(capturebin + 0.5, ax.get_ylim()[1], align='center', width=0.75, color='black')
 
-    ax.legend(loc=(0, 0.5), frameon=False, handlelength=1)
+    if flipped:
+        ax.legend(loc="upper right", frameon=False, handlelength=1)
+    else:
+        ax.legend(loc=(0, 0.5), frameon=False, handlelength=1)
     return ax
 
 
@@ -386,16 +486,11 @@ def compute_average_matrix(matrices):
 
 
 def make_difference_matrix(mat1, mat2):
-    sum1 = mat1.sum()
-    sum2 = mat2.sum()
+    # calculate the % of counts from mat1 if sum(mat1, mat2), throws unnecessary warnings if both bins are 0
+    with np.errstate(divide='ignore',invalid='ignore'): percentual_diff = (mat1 / (mat1 + mat2)) * 100
+    percentual_diff = np.nan_to_num(percentual_diff, nan=50) - 50
 
-    if sum1 > sum2:
-        mat1 = mat1 * sum2 / sum1
-
-    else:
-        mat2 = mat2 * sum1 / sum2
-
-    return mat1 - mat2
+    return percentual_diff
 
 
 def get_bin_index(captureSiteStart, leftBound, rightBound, binsize):
@@ -567,9 +662,9 @@ parser.add_argument('--compare_vMin', default = 0, type = float,
                     help = 'minimum value of colorbars in the compare matrix plots')
 parser.add_argument('--compare_vMax', default = 50, type = float,
                     help = 'maximum value of colorbars in the compare matrix plots')
-parser.add_argument('--diff_vMin', default = -15, type = float,
+parser.add_argument('--diff_vMin', default = -50, type = float,
                     help = 'minimum value of colorbars in the difference matrix plots')
-parser.add_argument('--diff_vMax', default = 15, type = float,
+parser.add_argument('--diff_vMax', default = 50, type = float,
                     help = 'maximum value of colorbars in the difference matrix plots')
 parser.add_argument('--figwidth', default=10, type=float,
                     help='width of the generated figure. Height is computed accordingly.')
@@ -581,6 +676,8 @@ parser.add_argument('--diff_colormap', default = 'bwr',
                     help = 'either a name of colormap predefined in matplotlib or a comma-separated list of colors'
                            'where position of the color in the list corresponds to the value it represents'
                            'with first = smallest, last = highest')
+parser.add_argument('--flipped', action='store_true',
+                    help="flipping of the matirces and annotation so that the locus is displayed in 5' to 3' direction. Default is False.")
 parser.add_argument('--outputFilePrefix', '-o', required=True,
                     help='prefix to use for output files')
 args = parser.parse_args()
@@ -705,7 +802,6 @@ oligotab = pd.read_csv(args.capture_bins,
                        usecols=[0, 1, 2, 3])
 
 capturebins = [get_bin_index(r['start'], leftBound, rightBound, args.binsize) for i, r in oligotab.iterrows()]
-
 highlightbins = []
 if args.highlight_annotation:
     highlightbins = get_highlight_bin_argument_from_annotation(annotations[args.highlight_annotation - 1][0],
@@ -720,11 +816,12 @@ treatment_ax = plot_matrix(treatment_ax,
                            compare_cmap,
                            (leftBound, rightBound),
                            chrom,
+                           args.flipped,
                            capturebins=capturebins,
                            highlightbins=highlightbins,
                            vmin=args.compare_vMin,
                            vmax=args.compare_vMax,
-                           xticknum=10,
+                           xticknum=11,
                            subplot_label=args.treatment_label)
 
 control_ax = plot_matrix(control_ax,
@@ -732,11 +829,12 @@ control_ax = plot_matrix(control_ax,
                          compare_cmap,
                          (leftBound, rightBound),
                          chrom,
+                         args.flipped,
                          capturebins=capturebins,
                          highlightbins=highlightbins,
                          vmin=args.compare_vMin,
                          vmax=args.compare_vMax,
-                         xticknum=10,
+                         xticknum=11,
                          mirror_horizontal=True,
                          subplot_label=args.control_label)
 
@@ -745,12 +843,15 @@ diff_ax = plot_matrix(diff_ax,
                       diff_cmap,
                       (leftBound, rightBound),
                       chrom,
+                      args.flipped,
                       capturebins=capturebins,
                       highlightbins=highlightbins,
                       vmin=args.diff_vMin,
                       vmax=args.diff_vMax,
-                      xticknum=10,
-                      subplot_label='-'.join((args.treatment_label, args.control_label)))
+                      xticknum=11,
+                      subplot_label=' - '.join((args.treatment_label, args.control_label)),
+                      colorbar_ticks=False,
+                      colorbar_label='Proportion of treatment (red) vs ctrl (blue) per bin')
 
 if any(profile_args):
     profiles = load_profiles(args.treatment_3plus, args.control_3plus,
@@ -765,7 +866,8 @@ if any(profile_args):
                                   (leftBound, rightBound),
                                   yrange=(0, args.profile_yMax),
                                   capturebins=capturebins,
-                                  colors=('black', '#fc7e00'))
+                                  colors=('black', '#fc7e00'),
+                                  flipped=args.flipped)
 
 if annotations:
     for annotation_axs in [annotation_axs1, annotation_axs2]:
@@ -779,7 +881,8 @@ if annotations:
                                  n_bins,
                                  leftBound,
                                  rightBound,
-                                 chrom)
+                                 chrom,
+                                 flipped=args.flipped)
 
     # plot only the Line2d a second time for bottom matrix
     ax = plot_annotation(secondLine2d_ax1, 
@@ -792,7 +895,8 @@ if annotations:
                          leftBound, 
                          rightBound, 
                          chrom,
-                         mirror_horizontal=True)
+                         mirror_horizontal=True,
+                         flipped=args.flipped)
 
 # fig1.tight_layout(pad = 3, h_pad = hspace)
 # fig2.tight_layout(pad = 3, h_pad = hspace)

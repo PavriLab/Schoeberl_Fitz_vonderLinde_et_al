@@ -420,8 +420,12 @@ def read_input(full_file_name_ery, start, stop):
 
 int_dic, RF_dic, matrix_interaction_count = read_input(full_file_name_ery, start, stop)
 
+print('interactions', matrix_interaction_count)
+
 if normchrom:
-    _, _, matrix_interaction_count = read_input(full_file_name_ery, normstart, normstop)
+    _, _, matrix_interaction_count_norm = read_input(full_file_name_ery, normstart, normstop)
+    print('partial interactions', matrix_interaction_count_norm)
+    print('ratio', matrix_interaction_count_norm / matrix_interaction_count)
 
 for key in int_dic:
     bin1 = int(key[0] / bin_size)
@@ -429,9 +433,19 @@ for key in int_dic:
     if bin1 >= bin_start and bin1 < bin_stop and bin2 >= bin_start and bin2 < bin_stop:
         corr = len(RF_dic[bin1]) * len(
             RF_dic[bin2])  # calculate number of restriction fragments contributing to each bin
-        # normalise for number of restriction fragments per bin and total number of interactions contributing to matrix
+
+        # normalise for number of restriction fragments per bin
         matrix[int(bin1 - bin_start), int(bin2 - bin_start)] += 1.0 * int_dic[
-            key] / corr * 1000000 / matrix_interaction_count
+            key] / corr
+
+# normalize each value in the matrix so that the sum of all values equals 300,000 while the weights stay the same
+normalizer = 300000 / matrix.sum()
+matrix = matrix * normalizer
+
+count = 0
+for i in matrix:
+    nz = i[i != 0]
+    count += nz[0] if len(nz) > 0 else 0
 
 # Start parsing from command line ..
 
