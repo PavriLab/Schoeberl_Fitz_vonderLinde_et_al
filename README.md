@@ -73,7 +73,7 @@ do
                          --outRawCounts profiles/${sample}_3plus.tsv
 done
 ```
-The results we need is the `profiles/${sample}_3plus.tsv` file. Note that the used binsize has to be the same as the binsize used for calculating the Tri-C matrices using the `TriC_matrix_simple_MO.py` script of the original publication from the repository of [Marike Oudelaar](https://github.com/oudelaar/TriC). The next step is to collect the Tri-C matrix files, as computed by the CCseq pipeline with the `--tric` flag set from their residing folder (F7*/sample/), which is based on the actual restriction fragment boundaries, and using the above mentioned script to generate a matrix file with a fixed binsize with
+The results we need is the `profiles/${sample}_3plus.tsv` file. Note that the used binsize has to be the same as the binsize used for calculating the Tri-C matrices using the `TriC_matrix_simple_MO.py` script either of the original publication from the repository of [Marike Oudelaar](https://github.com/oudelaar/TriC) or from this repository (please see section below for more information about the differences). The next step is to collect the Tri-C matrix files, as computed by the CCseq pipeline with the `--tric` flag set from their residing folder (F7*/sample/), which is based on the actual restriction fragment boundaries, and using the above mentioned script to generate a matrix file with a fixed binsize with
 ```bash
 python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile -c chr12 -l 114435000 -r 114669000 -b 1000 -t 50 -a -o TriCplots
 ```
@@ -99,6 +99,18 @@ python3 TriCplot.py --treatment data/matrices/priB_d2_Emu_*_TriC_interactions_10
                     --outputFilePrefix data/priB_Emu
 ```
 A more detailed documentation on the different commandline arguments can be found via `python3 TriCplot.py --help/-h`. Results and test data can be found in the data folder.
+
+### Changes to `TriC_matrix_simple_MO.py`
+This script is basically a copy of the original script of [Marieke Oudelaar](https://github.com/oudelaar/TriC), with the addition of the ability to specify a second region which will be used to compute the matrix normalization factor. The new parameters are `--normchrom`, `--nstr` and `--nstp` and a typical command would look like this
+```bash
+python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile \
+                                      -c chr12 -l 114435000 -r 114669000 \
+                                      --normchrom chr12 --nstr 114435000 --nstp 114496000 \
+                                      -b 1000 \
+                                      -t 50 \
+                                      -a \
+                                      -o TriCplots
+```
 
 ### FAQ
 #### How do I get the oligos file for my capture probes?

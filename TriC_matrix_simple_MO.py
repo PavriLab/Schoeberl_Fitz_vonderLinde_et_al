@@ -385,6 +385,7 @@ print("\nOutput file names set to start with : '" + full_file_name_out_ery + "*'
 
 # initialise matrix
 print("Initialise matrix ..")
+
 bin_start = start / bin_size
 bin_stop = stop / bin_size
 n_bins = int(bin_stop - bin_start)
@@ -418,6 +419,7 @@ def read_input(full_file_name_ery, start, stop):
     return int_dic, RF_dic, matrix_interaction_count
 
 int_dic, RF_dic, matrix_interaction_count = read_input(full_file_name_ery, start, stop)
+
 print('interactions', matrix_interaction_count)
 
 if normchrom:
@@ -431,6 +433,7 @@ for key in int_dic:
     if bin1 >= bin_start and bin1 < bin_stop and bin2 >= bin_start and bin2 < bin_stop:
         corr = len(RF_dic[bin1]) * len(
             RF_dic[bin2])  # calculate number of restriction fragments contributing to each bin
+
         # normalise for number of restriction fragments per bin
         matrix[int(bin1 - bin_start), int(bin2 - bin_start)] += 1.0 * int_dic[
             key] / corr
@@ -443,6 +446,7 @@ count = 0
 for i in matrix:
     nz = i[i != 0]
     count += nz[0] if len(nz) > 0 else 0
+
 # Start parsing from command line ..
 
 print("Generate plot ..")
