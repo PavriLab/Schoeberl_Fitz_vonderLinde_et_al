@@ -64,7 +64,9 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, flipped, altern
     tab = pd.read_csv(annotation, sep='\t')
     subset = tab.loc[(tab.start > xmin) & (tab.end < xmax), :]
     
-    mpl.rcParams['text.usetex'] = True
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    plt.rc('text.latex', preamble=r'\usepackage[Symbol]{upgreek}')
 
     if flipped:
         for i, locus in subset.iterrows():
