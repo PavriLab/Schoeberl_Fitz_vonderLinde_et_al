@@ -468,7 +468,7 @@ def plot_profile_overlay(ax,
             for capturebin in capturebins:
                 if capturebin is not None:
                     if flipped:
-                        capturebin = len(profile) - capturebin -1
+                        capturebin = len(profile) - capturebin
 
                     ax.bar(capturebin + 0.5, ax.get_ylim()[1], align='center', width=0.75, color='black')
 
@@ -497,8 +497,7 @@ def make_difference_matrix(mat1, mat2):
 
 def get_bin_index(captureSiteStart, leftBound, rightBound, binsize):
     binbounds = np.arange(leftBound, rightBound, binsize)
-    # -1 because 0-based indices
-    return len(np.where(binbounds < captureSiteStart)[0]) - 1 \
+    return len(np.where(binbounds < captureSiteStart)[0]) \
            if not (captureSiteStart < binbounds[0] or captureSiteStart > binbounds[-1]) \
            else None
 
@@ -588,7 +587,7 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
         # binnorm = 1000 / (meanprofile * totalnorm).max()
         for capturebin in capturebins:
             if capturebin is not None:
-                meanprofile.loc[capturebin] = 0  # setting capture site counts to 0
+                meanprofile.loc[capturebin + 1] = 0  # setting capture site counts to 0, +1 because of count start at 0
 
         profiletab['meanprofile'] = meanprofile
         profiletab = profiletab \
