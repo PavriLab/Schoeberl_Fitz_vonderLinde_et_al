@@ -115,7 +115,7 @@ QSUBERRFILE="qsub.err"
 #echo "CCseq.out" > CCseq.out
 #echo "CCseq.err" > CCseq.err
 
-MAPQ=30
+# MAPQ=20
 CapturesiteFile=""
 TRIM=1
 GENOME=""
@@ -380,7 +380,7 @@ echo
 
 #------------------------------------------
 
-OPTS=`getopt -o h,m:,M:,o:,c:,s:,w:,i:,v: --long help,dump,snp,dpn,nla,hind,gz,strandSpecificDuplicates,redGreen,triCyellowBlack,onlyCis,onlyBlat,onlyTriC,triC,triCwithExcl,binnedTriC,UMI,useSymbolicLinks,SRR,CCversion:,BLATforREUSEfolderPath:,globin:,outfile:,errfile:,lanes:,limit:,pf:,genome:,R1:,R2:,saveGenomeDigest,dontSaveGenomeDigest,trim,noTrim,chunkmb:,bowtie1,bowtie2,window:,increment:,ada3read1:,ada3read2:,extend:,onlyCCanalyser,onlyHub,noPloidyFilter:,qmin:,flashBases:,flashMismatch:,stringent,trim3:,trim5:,seedmms:,seedlen:,maqerr:,stepSize:,tileSize:,minScore:,minIdentity:,minMatch:,maxIntron:,oneOff:,wobblyEndBinWidth:,ampliconSize:,sonicationSize:,triCbin:,triCmax:,fourFragmentsPerRead,fiveFragmentsPerRead,sixFragmentsPerRead,sevenFragmentsPerRead -- "$@"`
+OPTS=`getopt -o h,m:,M:,o:,c:,s:,w:,i:,v: --long help,dump,snp,dpn,nla,hind,gz,strandSpecificDuplicates,redGreen,triCyellowBlack,onlyCis,onlyBlat,onlyTriC,triC,triCwithExcl,binnedTriC,UMI,useSymbolicLinks,SRR,CCversion:,BLATforREUSEfolderPath:,globin:,outfile:,errfile:,lanes:,limit:,pf:,genome:,R1:,R2:,mapq:,saveGenomeDigest,dontSaveGenomeDigest,trim,noTrim,chunkmb:,bowtie1,bowtie2,window:,increment:,ada3read1:,ada3read2:,extend:,onlyCCanalyser,onlyHub,noPloidyFilter:,qmin:,flashBases:,flashMismatch:,stringent,trim3:,trim5:,seedmms:,seedlen:,maqerr:,stepSize:,tileSize:,minScore:,minIdentity:,minMatch:,maxIntron:,oneOff:,wobblyEndBinWidth:,ampliconSize:,sonicationSize:,triCbin:,triCmax:,fourFragmentsPerRead,fiveFragmentsPerRead,sixFragmentsPerRead,sevenFragmentsPerRead -- "$@"`
 if [ $? != 0 ]
 then
     exit 1
@@ -400,6 +400,7 @@ while true ; do
         -s) Sample=$2 ; shift 2;;
         -v) LOWERCASE_V=$2; shift 2;;
         --help) usage ; shift;;
+        --mapq) MAPQ=$2 ; shift 2;;
         --UMI) printThis="UMI flag temporarily broken 01Nov2018\nEXITING";printToLogFile;exit 1;otherParameters="$otherParameters --umi" ; shift;;
         --useSymbolicLinks) otherParameters="${otherParameters} --symlinks" ; otherTricParameters="${otherTricParameters} --symlinks"; shift;;
         --CCversion) CCversion="$2"; shift 2;;
@@ -1168,17 +1169,17 @@ if [ "${ONLY_TRIC}" -eq "0" ]; then
             mkdir FLASHED_fastqc
             mkdir NONFLASHED_fastqc
 
-            printThis="fastqc --quiet -f fastq FLASHED.fastq"
+            printThis="fastqc -t 2 --quiet -f fastq FLASHED.fastq"
             printToLogFile
 
-            fastqc --quiet -f fastq FLASHED.fastq
+            fastqc -t 2 --quiet -f fastq FLASHED.fastq
             mv -f FLASHED_fastqc.html FLASHED_fastqc/fastqc_report.html
 
 
-            printThis="fastqc --quiet -f fastq NONFLASHED.fastq"
+            printThis="fastqc -t 2 --quiet -f fastq NONFLASHED.fastq"
             printToLogFile
 
-            fastqc --quiet -f fastq NONFLASHED.fastq
+            fastqc -t 2 --quiet -f fastq NONFLASHED.fastq
             mv -f NONFLASHED_fastqc.html NONFLASHED_fastqc/fastqc_report.html
 
 
@@ -1228,10 +1229,10 @@ if [ "${ONLY_TRIC}" -eq "0" ]; then
             mkdir FLASHED_REdig_fastqc
             mkdir NONFLASHED_REdig_fastqc
 
-            printThis="fastqc --quiet -f fastq FLASHED_REdig.fastq"
+            printThis="fastqc -t 2 --quiet -f fastq FLASHED_REdig.fastq"
             printToLogFile
 
-            fastqc --quiet -f fastq FLASHED_REdig.fastq
+            fastqc -t 2 --quiet -f fastq FLASHED_REdig.fastq
             if [ "$?" -ne 0 ]; then
                 printThis="FastqQC run failed ! Possible reasons : \n 1) did you maybe use SRR archive format fastq files without adding --SRR to the run parameters ? \n 2) Fastq files not in Illumina format ? (also here you can rescue with --SRR if your rolling read ID is the first field in the fastq @name line) \n EXITING !! "
                 printToLogFile
@@ -1241,10 +1242,10 @@ if [ "${ONLY_TRIC}" -eq "0" ]; then
             mv -f FLASHED_REdig_fastqc.html FLASHED_REdig_fastqc/fastqc_report.html
 
 
-            printThis="fastqc --quiet -f fastq NONFLASHED_REdig.fastq"
+            printThis="fastqc -t 2 --quiet -f fastq NONFLASHED_REdig.fastq"
             printToLogFile
 
-            fastqc --quiet -f fastq NONFLASHED_REdig.fastq
+            fastqc -t 2 --quiet -f fastq NONFLASHED_REdig.fastq
             mv -f NONFLASHED_REdig_fastqc.html NONFLASHED_REdig_fastqc/fastqc_report.html
 
             ################################################################
