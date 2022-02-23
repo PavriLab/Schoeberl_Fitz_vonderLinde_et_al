@@ -2,6 +2,7 @@ import argparse as ap
 import matplotlib.pyplot as plt
 import logging
 import regex as re
+import pandas as pd
 
 def readLines(file, identifiers, split = False):
     '''
@@ -45,6 +46,8 @@ parser.add_argument('--fig_width', default = 12, type = int,
                     help = 'width of the figure in inches')
 parser.add_argument('-o', '--outFile', required = True,
                     help = 'file to save the plot to')
+parser.add_argument('--dataOut', default=False, action='store_true',
+                    help = 'add if the generated data should be saved as csv')
 args = parser.parse_args()
 
 args.F6fullreport = [i + '/F6_greenGraphs_combined_sample_CS5/COMBINED_report_CS5.txt' for i in args.ccseq_dir]
@@ -77,6 +80,8 @@ for s, f, nf, c in zip(args.sampleNames, args.F3fullreportFlashed, args.F3fullre
 fig, axs = plt.subplots(1, 2)
 ax1, ax2 = axs
 
+uniques = []
+
 # generate overall barchart
 pos = list(range(1, len(args.readNum) + 1))
 ax1.bar(pos,  [100] * len(args.readNum), label = 'total readpairs', color = 'dimgrey')
@@ -86,7 +91,10 @@ for k, label, color in zip(['11', '11b', '11c', '16'],
     v = []
     for s, rn in zip(args.sampleNames, args.readNum):
         v.append((sum(separate[s]['f'][k]) + sum(separate[s]['nf'][k]))/rn*100)
-
+    
+    if k == '16':
+        uniques = v
+    
     ax1.bar(pos, v, label = label, color = color)
 
 ax1.set_title('alignment and filter statistics')
@@ -117,6 +125,16 @@ bottom = [0] * len(args.sampleNames)
 for w, label, color in zip([nway, threeway, twoway], ['>3way', '3way', '2way'], ['darkgreen', 'limegreen', 'dimgrey']):
     ax2.bar(pos, w, bottom = bottom, label = label, color = color)
     bottom = [i + j for i, j in zip(w, bottom)]
+
+if args.dataOut:
+    statDict = {'sample': args.sampleNames,
+            'unique%':uniques,
+            '>3way':nway,
+            '3way':threeway,
+            '2way':twoway}
+
+    statDF = pd.DataFrame(statDict)
+    statDF.to_csv(str(args.outFile[:-4] + '.csv'), index=False)
 
 ax2.set_title('n-way read fractions')
 ax2.legend()
