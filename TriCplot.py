@@ -634,13 +634,6 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
             if capturebin is not None:
                 profiletab.loc[capturebin - 1, 'meanprofile'] = 0  # setting capture site counts to 0, +1 because of count start at 0
 
-        totalnorm = 300000 / profiletab['meanprofile'].sum()
-
-        # binnorm = 1000 / (meanprofile * totalnorm).max()
-
-        # profiles[k] = np.log10(profiletab['meanprofile'] * totalnorm +1)  # normalize to 100,000 total interactions, add 1 for log scale
-        profiles[k] = profiletab['meanprofile'] * totalnorm  # * binnorm
-
         profiles[k].to_csv(f'testingAndUseless/test_{k}.tsv', sep='\t', header=True)
 
     return profiles
