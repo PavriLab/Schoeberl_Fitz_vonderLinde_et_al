@@ -90,7 +90,7 @@ python3 TriCplot.py --treatment data/matrices/priB_d2_Emu_*_TriC_interactions_10
                     --control_label priB_d0 \
                     --region "chr12:114435000-114669000" \
                     --binsize 1000 \
-            		    --compare_vMax 100 \
+                    --compare_vMax 100 \
                     --capture_bins capture.oligo \
                     --annotation data/annotations/vdj_genes.sort.bed data/annotations/vdj_REs.bed data/annotations/mappability.bw \
                     --annotation_drawstyle Line2D Marker bigwig \
@@ -105,7 +105,7 @@ python3 TriCplot.py --treatment data/matrices/priB_d2_Emu_*_TriC_interactions_10
                     --profile_yMax 200 \
                     --outputFilePrefix data/priB_Emu
 ```
-A more detailed documentation on the different commandline arguments can be found via `python3 TriCplot.py --help/-h`. Results and test data can be found in the data folder. The `data/annotations/vdj_genes.sort.bed` file is a custom bed file with annotations of the region. It is processed by latech, so the display_names can show special characters like greek letters.
+A more detailed documentation on the different commandline arguments can be found via `python3 TriCplot.py --help/-h`. Results and test data can be found in the data folder. The `data/annotations/vdj_genes.sort.bed` file is a custom bed file with annotations of the region. It is processed by LaTeX, so the display_names can show special characters like greek letters.
 
 ### Changes to `TriC_matrix_simple_MO.py`
 This script is basically a copy of the original script of [Marieke Oudelaar](https://github.com/oudelaar/TriC), with the addition of the ability to specify a second region which will be used to compute the matrix normalization factor and a new general normalization. Matrices are normalized to 300,000 total interactions. The new parameters are `--normchrom`, `--nstr` and `--nstp` and a typical command would look like this
