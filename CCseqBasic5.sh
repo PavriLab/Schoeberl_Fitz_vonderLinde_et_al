@@ -115,7 +115,7 @@ QSUBERRFILE="qsub.err"
 #echo "CCseq.out" > CCseq.out
 #echo "CCseq.err" > CCseq.err
 
-# MAPQ=20
+MAPQ=20
 CapturesiteFile=""
 TRIM=1
 GENOME=""
