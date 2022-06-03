@@ -1,5 +1,6 @@
 # setting number threads environment variable
 import os
+from pickle import FALSE
 
 from numpy.lib.function_base import flip
 os.environ['NUMEXPR_MAX_THREADS'] = '8'
@@ -10,15 +11,28 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 import matplotlib.gridspec as gs
-import matplotlib as mpl
 import pandas as pd
 import pyBigWig as pbw
 import logging
 import argparse as ap
 import regex as re
-# setting rcParams to enable editable text in Adobe Illustrator
-mpl.rcParams['pdf.fonttype'] = 42
 
+# setting rcParams to enable editable text in Adobe Illustrator
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.sans-serif'] = 'Arial'
+plt.rcParams['font.size'] = 20
+plt.rcParams['lines.linewidth'] = 1.25
+def latex(bool):
+    if bool:
+        plt.rcParams['font.family'] = 'sans-serif'
+        plt.rcParams['font.sans-serif'] = 'Helvetica'
+        plt.rcParams['text.usetex'] = True
+        plt.rcParams['text.latex.preamble'] = "\n".join([r'\usepackage[Symbol]{upgreek}', r'\usepackage{helvet}', r'\renewcommand{\familydefault}{\sfdefault}'])
+    else: 
+        plt.rcParams['text.usetex'] = False
+        plt.rcParams['font.family'] = 'sans-serif'
+        plt.rcParams['font.sans-serif'] = 'Arial'
 
 def get_regional_matrix(contactMatrix, intervalstarts, start, end, csr=False):
     indices, include = [], []
@@ -64,9 +78,8 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, flipped, altern
     tab = pd.read_csv(annotation, sep='\t')
     subset = tab.loc[(tab.start > xmin) & (tab.end < xmax), :]
     
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif')
-    plt.rc('text.latex', preamble=r'\usepackage[Symbol]{upgreek}')
+    latex(True)
+    plt.rcParams['font.size'] = 15
 
     if flipped:
         for i, locus in subset.iterrows():
@@ -75,19 +88,20 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, flipped, altern
             x2 = xmax if end > xmax else (xmax - start) * increment
 
             color = 'black' if pd.isna(locus['color']) else locus['color']
+            alpha = 1 if pd.isna(locus['alpha']) else float(locus['alpha'])
 
             if alternating:
                 if i % 2 == 0:
-                    ax.add_line(Line2D([x1, x2], [0.425, 0.425], lw=5, solid_capstyle='butt', color=color))
+                    ax.add_line(Line2D([x1, x2], [0.425, 0.425], lw=5, solid_capstyle='butt', color=color, alpha=alpha))
 
                 else:
-                    ax.add_line(Line2D([x1, x2], [0.575, 0.575], lw=5, solid_capstyle='butt', color=color))
+                    ax.add_line(Line2D([x1, x2], [0.575, 0.575], lw=5, solid_capstyle='butt', color=color, alpha=alpha))
 
             else:
                 if not mirror_horizontal:
-                    ax.add_line(Line2D([x1, x2], [0.75, 0.75], lw=5, solid_capstyle='butt', color=color))
+                    ax.add_line(Line2D([x1, x2], [0.75, 0.75], lw=5, solid_capstyle='butt', color=color, alpha=alpha))
                 else:
-                    ax.add_line(Line2D([x1, x2], [0.25, 0.25], lw=5, solid_capstyle='butt', color=color))
+                    ax.add_line(Line2D([x1, x2], [0.25, 0.25], lw=5, solid_capstyle='butt', color=color, alpha=alpha))
 
 
             if alternating:
@@ -95,25 +109,25 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, flipped, altern
                     ax.text((x2 - x1) / 2 + x1, 0.325, 
                     '' if pd.isna(locus['display_name']) else locus['display_name'],
                     ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                    va='top', fontsize=10)
+                    va='top')
 
                 else:
                     ax.text((x2 - x1) / 2 + x1, 0.675, 
                     '' if pd.isna(locus['display_name']) else locus['display_name'],
                     ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                    va='bottom', fontsize=10)
+                    va='bottom')
 
             else:
                 if not mirror_horizontal:
                     ax.text((x2 - x1) / 2 + x1, 0.5, 
                     '' if pd.isna(locus['display_name']) else locus['display_name'],
                     ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                    va='top', fontsize=10)
+                    va='top')
                 else:
                     ax.text((x2 - x1) / 2 + x1, 0.5, 
                     '' if pd.isna(locus['display_name']) else locus['display_name'],
                     ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                    va='bottom', fontsize=10)
+                    va='bottom')
 
     else:
         for i, locus in subset.iterrows():
@@ -122,19 +136,20 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, flipped, altern
             x2 = xmax if end > xmax else (end - xmin) * increment
 
             color = 'black' if pd.isna(locus['color']) else locus['color']
+            alpha = 1 if pd.isna(locus['alpha']) else float(locus['alpha'])
 
             if alternating:
                 if i % 2 == 0:
-                    ax.add_line(Line2D([x1, x2], [0.425, 0.425], lw=5, solid_capstyle='butt', color=color))
+                    ax.add_line(Line2D([x1, x2], [0.425, 0.425], lw=5, solid_capstyle='butt', color=color, alpha=alpha))
 
                 else:
-                    ax.add_line(Line2D([x1, x2], [0.575, 0.575], lw=5, solid_capstyle='butt', color=color))
+                    ax.add_line(Line2D([x1, x2], [0.575, 0.575], lw=5, solid_capstyle='butt', color=color, alpha=alpha))
 
             else:
                 if not mirror_horizontal:
-                    ax.add_line(Line2D([x1, x2], [0.75, 0.75], lw=5, solid_capstyle='butt', color=color))
+                    ax.add_line(Line2D([x1, x2], [0.75, 0.75], lw=5, solid_capstyle='butt', color=color, alpha=alpha))
                 else:
-                    ax.add_line(Line2D([x1, x2], [0.25, 0.25], lw=5, solid_capstyle='butt', color=color))
+                    ax.add_line(Line2D([x1, x2], [0.25, 0.25], lw=5, solid_capstyle='butt', color=color, alpha=alpha))
 
 
             if alternating:
@@ -142,27 +157,27 @@ def add_annotation_line2D(ax, annotation, increment, xmin, xmax, flipped, altern
                     ax.text((x2 - x1) / 2 + x1, 0.325, 
                     '' if pd.isna(locus['display_name']) else locus['display_name'],
                     ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                    va='top', fontsize=10)
+                    va='top')
 
                 else:
                     ax.text((x2 - x1) / 2 + x1, 0.675, 
                     '' if pd.isna(locus['display_name']) else locus['display_name'],
                     ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                    va='bottom', fontsize=10)
+                    va='bottom')
 
             else:
                 if not mirror_horizontal:
                     ax.text((x2 - x1) / 2 + x1, 0.5, 
                     '' if pd.isna(locus['display_name']) else locus['display_name'],
                     ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                    va='top', fontsize=10)
+                    va='top')
                 else:
                     ax.text((x2 - x1) / 2 + x1, 0.5, 
                     '' if pd.isna(locus['display_name']) else locus['display_name'],
                     ha='center' if pd.isna(locus['pos']) else locus['pos'],
-                    va='bottom', fontsize=10)
-            
-    mpl.rcParams['text.usetex'] = False
+                    va='bottom')
+    latex(False)
+    plt.rcParams['font.size'] = 20
 
 
 def smooth(values, smoothwindow):
@@ -204,14 +219,14 @@ def plot_annotation(ax,
     increment = number_of_bins / (end - start)
     ax.set_ylim(bottom=ylim[0], top=ylim[1])
     ax.set_yticks([])
-    ax.set_ylabel(ylabel)
+    ax.set_ylabel(ylabel, fontsize=15)
 
     if plottype == 'Line2D':
         add_annotation_line2D(ax, track, increment, start, end, flipped, alternating, mirror_horizontal)
 
     elif plottype == 'Marker':
         add_annotation_marker(ax, track, increment, start, end, flipped)
-        ax.set_ylabel(ylabel, rotation='horizontal', ha='right', va='center')
+        ax.set_ylabel(ylabel, ha='right', rotation='horizontal', va='center')
 
 
     elif plottype == 'bigwig':
@@ -223,8 +238,8 @@ def plot_annotation(ax,
                          0,
                          number_of_bins,
                          flipped)
-        ax.set_yticks(ylim)
-        ax.yaxis.set_label_position('right')
+        # ax.set_yticks(ylim)
+        ax.set_ylabel(ylabel, ha='right', rotation='horizontal', va='center')
 
     else:
         raise Exception("plottype not supported")
@@ -263,7 +278,8 @@ def plot_matrix(ax,
                 mirror_horizontal=False,
                 subplot_label=None,
                 colorbar_ticks = True,
-                colorbar_label='Normalized Interaction counts'):
+                colorbar_label='Norm. Interactions',
+                colorbar_range=None):
     '''
     plotting function for triC results
 
@@ -287,13 +303,15 @@ def plot_matrix(ax,
     :param mirror_horizontal:   indicates if generated matrix plot should be mirrored at a horizontal line
     :param subplot_label:       label of the matrix, None = no label
     :param colorbar_label:      label of the colorbar, Default = 'Normalized Interaction counts'
+    :param colorbar_range:      colorbar labels at the top and bottom, describing the range, Default: None = no labels
 
     :return:                    plt.Axes
     '''
 
+
     xrange = (xrange[0] / scaling, xrange[1] / scaling)
 
-    N = mat.shape[0]
+    N = mat.shape[0] # spacing made with the help of N always has to be done relative, as N can change drastically.
     # Get the lower triangle of the matrix.
     C = np.triu(mat)
     # Mask the upper triangle
@@ -355,7 +373,7 @@ def plot_matrix(ax,
             hlmat[:, hlidx] = 1
             hlmat = np.triu(hlmat)
             hlmat = np.ma.masked_array(hlmat, hlmat == 0)
-            hlmesh = ax.pcolormesh(X, Y, np.flipud(hlmat), cmap=hlmap, vmin=0, vmax=1, alpha=0.2, zorder=1)
+            hlmesh = ax.pcolormesh(X, Y, np.flipud(hlmat), cmap=hlmap, vmin=0, vmax=1, alpha=0.125, zorder=1)
 
     # draw outlines of triangle plot
     vertices = np.array([[0, 0], [N / 2, N], [N, 0]]) if not mirror_horizontal else np.array(
@@ -393,31 +411,48 @@ def plot_matrix(ax,
 
     # plot colorbar
     if not mirror_horizontal:
-        rect = patches.Rectangle((N - N * cbarwidth, N / 2), N * cbarwidth, N / 2, fill=False, edgecolor='white') 
 
-        ax.add_patch(rect)
-
-        cbarY = np.tile(np.linspace(N / 2, N, cmap.N).reshape(-1, 1), 2)
-        cbarX = np.tile(np.array([N - N * cbarwidth, N]), (cbarY.shape[0], 1))
-        cbarmesh = ax.pcolormesh(cbarX, cbarY, np.linspace(0, 1, cmap.N - 1).reshape(-1, 1), cmap=cmap, vmin=0, vmax=1)
-
-        ys = np.linspace(N / 2, N, 5)
         if colorbar_ticks:
+
+            rect = patches.Rectangle((N * cbarwidth, N * 3/8), N * cbarwidth, N / 2, fill=False, edgecolor='white') 
+
+            ax.add_patch(rect)
+
+            cbarY = np.tile(np.linspace(N * 3/8, N * 7/8, cmap.N).reshape(-1, 1), 2)
+            cbarX = np.tile(np.array([N * cbarwidth, N * cbarwidth * 2]), (cbarY.shape[0], 1))
+            cbarmesh = ax.pcolormesh(cbarX, cbarY, np.linspace(0, 1, cmap.N - 1).reshape(-1, 1), cmap=cmap, vmin=0, vmax=1)
+
+            ys = np.linspace(N * 3/8, N * 7/8, 5)
             for y, cmapval in zip(ys, np.linspace(vmin, vmax, 5)):
                 ax.add_line(
-                    Line2D([N - N * cbarwidth - N * 0.005, N - N * cbarwidth], [y, y], color='black', lw=mpl.rcParams['patch.linewidth']))
-                ax.text(N - N * cbarwidth - N * 0.0075, y, '{:.01f}'.format(cmapval), ha='right', va='center')
+                    Line2D([N * cbarwidth * 2, N * cbarwidth * 2 + N * 0.005], [y, y], color='black', lw=plt.rcParams['patch.linewidth']))
+                ax.text(N * cbarwidth * 2 + N * 0.0075, y, '{:.01f}'.format(cmapval), ha='left', va='center', fontsize=15)
 
-        ax.text(N + 1, 3 * N / 4 , colorbar_label, ha='left', va='center', rotation=90)
+            ax.text(N * cbarwidth * 0.9, N * 5/8 , colorbar_label, ha='right', va='center', rotation=90, fontsize=15)
+
+        elif colorbar_range:
+            rect = patches.Rectangle((N - N * cbarwidth, N / 2), N * cbarwidth, N / 2, fill=False, edgecolor='white') 
+
+            ax.add_patch(rect)
+
+            cbarY = np.tile(np.linspace(N / 2, N, cmap.N).reshape(-1, 1), 2)
+            cbarX = np.tile(np.array([N - N * cbarwidth, N]), (cbarY.shape[0], 1))
+            cbarmesh = ax.pcolormesh(cbarX, cbarY, np.linspace(0, 1, cmap.N - 1).reshape(-1, 1), cmap=cmap, vmin=0, vmax=1)
+
+            ys = np.linspace(N / 2, N, 5)
+
+            ax.text(N - N * cbarwidth - N * 0.0075, ys[0], colorbar_range[0], ha='right', fontsize=15)
+            ax.text(N - N * cbarwidth - N * 0.0075, ys[-1], colorbar_range[1], ha='right', fontsize=15)
+
+            ax.text(N + 1, 3 * N / 4 , colorbar_label, ha='left', va='center', rotation=90, fontsize=15)
 
     if subplot_label:
-        ax.text(0, N if not mirror_horizontal else -N, subplot_label,
-                ha='left',
-                va='top' if not mirror_horizontal else 'bottom', fontsize=15)
+        ax.text(0, N + N * 0.02 if not mirror_horizontal else -N - N * 0.06, subplot_label,
+                ha='left')
 
     # add chromosome location
     if mirror_horizontal: 
-        ax.text(N-2, -N, f"{chrom}: {'{val:,}'.format(val=int(xrange[0]))},000-{'{val:,}'.format(val=int(xrange[1]))},000", ha='right')
+        ax.text(N, -N - N * 0.07, f"{chrom}: {'{val:,}'.format(val=int(xrange[0]))},000-{'{val:,}'.format(val=int(xrange[1]))},000", ha='right')
 
     return ax
 
@@ -433,8 +468,12 @@ def plot_profile_overlay(ax,
                          capturebins=None,
                          ylabel=None,
                          xlabel=None,
-                         xticknum=0):
+                         xticknum=0,
+                         legend=True,
+                         spines=None,
+                         inside=None):
     xrange = (xrange[0] / scaling, xrange[1] / scaling)
+    ax.patch.set_alpha(0)
 
     if ylabel:
         ax.set_ylabel(ylabel)
@@ -449,12 +488,17 @@ def plot_profile_overlay(ax,
     if yrange:
         ax.set_ylim(yrange)
         ax.set_yticks(yrange)
+        ax.set_yticklabels([str(int(yrange[0])), str(int(yrange[1]))], fontsize = 15)
+
+    if inside:
+        ax.tick_params(axis='y', direction='in', pad=-50)
 
     if xlabel:
         ax.set_xlabel(xlabel)
 
-    for loc in ['left', 'top', 'right']:
-        ax.spines[loc].set_visible(False)
+    if spines:
+        for loc in spines:
+            ax.spines[loc].set_visible(False)
 
     # iterate through profiles for plotting, flip the dict if necessary
     for color, (profilename, profile) in zip(colors, profiledict.items()):
@@ -470,12 +514,13 @@ def plot_profile_overlay(ax,
                     if flipped:
                         capturebin = len(profile) - capturebin
 
-                    ax.bar(capturebin + 0.5, ax.get_ylim()[1], align='center', width=0.75, color='black')
-
-    if flipped:
-        ax.legend(loc="upper right", frameon=False, handlelength=1)
-    else:
-        ax.legend(loc=(0, 0.5), frameon=False, handlelength=1)
+                    ax.bar(capturebin + 0.5, ax.get_ylim()[1], align='center', width=0.75, color='Grey', alpha=1, zorder=5)
+    if legend:
+        if flipped:
+            # ax.legend(loc="upper right", frameon=False, handlelength=1, ncol = 2)
+            ax.legend(loc=(0.9, 0.2), frameon=False, handlelength=1, fontsize=15)
+        else:
+            ax.legend(loc=(0, 0.5), frameon=False, handlelength=1, fontsize=15)
     return ax
 
 
@@ -578,25 +623,35 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
         profiletab = load_profile_table(file)
         
         meanprofile = profiletab.loc[:, ~profiletab.columns.isin(['chr', 'start', 'end'])].mean(axis=1)
-        if meanprofile.sum():
-            totalnorm = 100000 / meanprofile.sum()
-
-        else:
-            totalnorm = 1
-
-        # binnorm = 1000 / (meanprofile * totalnorm).max()
-        for capturebin in capturebins:
-            if capturebin is not None:
-                meanprofile.loc[capturebin + 1] = 0  # setting capture site counts to 0, +1 because of count start at 0
 
         profiletab['meanprofile'] = meanprofile
         profiletab = profiletab \
                           .loc[(profiletab['start'] >= leftBound) & (profiletab['start'] < rightBound), :] \
                           .reset_index(drop=True)
+        
+        for capturebin in capturebins:
+            print(f'capturebin {capturebin}')
+            if capturebin is not None:
+                profiletab.loc[capturebin - 1, 'meanprofile'] = 0  # setting capture site counts to 0, +1 because of count start at 0
+
+        totalnorm = 300000 / profiletab['meanprofile'].sum()
+
+        # binnorm = 1000 / (meanprofile * totalnorm).max()
+
+        # profiles[k] = np.log10(profiletab['meanprofile'] * totalnorm +1)  # normalize to 100,000 total interactions, add 1 for log scale
         profiles[k] = profiletab['meanprofile'] * totalnorm  # * binnorm
+
+        profiles[k].to_csv(f'testingAndUseless/test_{k}.tsv', sep='\t', header=True)
 
     return profiles
 
+def derive_profiles(treatment_mat, control_mat, treatment_label, control_label):
+    profiles = {}
+    for k, mat in zip([treatment_label, control_label], [treatment_mat, control_mat]):
+        meanprofile = [(sum(mat[:i, i]/2) + sum(mat[i, i+1:]/2) + mat[i, i]) for i in range(len(mat))] # divide all cells exept diagonal by 2 because those are counted twice
+        profiles[k] = meanprofile
+
+    return profiles
 
 def get_colormap(colors, N = 256):
     return clr.LinearSegmentedColormap.from_list('custom', colors, N=N) if len(colors) > 1 else plt.get_cmap(*colors)
@@ -659,6 +714,12 @@ parser.add_argument('--control_3plus',
                     help='tab-separated table containing counts of reads with 3 or more valid restriction fragments in the control condition')
 parser.add_argument('--profile_yMax', type = float, default = 200,
                     help='maximum value of the y axis of the profile plot')
+parser.add_argument('--profilePeak_yMin', type = int, nargs='?',
+                    help='minimum value of the y axis of the profile plot')
+parser.add_argument('--profilePeak_yMax', type = int, nargs='?',
+                    help='minimum value of the y axis of the profile plot')
+parser.add_argument('--profile_labels', nargs='*',
+                    help='space-separated list of the labels of the profile plot')
 parser.add_argument('--compare_vMin', default = 0, type = float,
                     help = 'minimum value of colorbars in the compare matrix plots')
 parser.add_argument('--compare_vMax', default = 50, type = float,
@@ -679,6 +740,11 @@ parser.add_argument('--diff_colormap', default = 'bwr',
                            'with first = smallest, last = highest')
 parser.add_argument('--flipped', action='store_true',
                     help="flipping of the matirces and annotation so that the locus is displayed in 5' to 3' direction. Default is False.")
+parser.add_argument('--derivedProfile', action='store_true',
+                    help="Switch for different profile plot generation. If called, the profile will be derived directly from the matrices. \
+                    If profile files are submitted, they will be ignored. Default is False.")
+parser.add_argument('--outputRawPrefix', required=False,
+                    help='optional prefix to use for output files')
 parser.add_argument('--outputFilePrefix', '-o', required=True,
                     help='prefix to use for output files')
 args = parser.parse_args()
@@ -688,6 +754,9 @@ n_bins = (rightBound - leftBound) // args.binsize
 
 compare_cmap = get_colormap(args.compare_colormap.split(','))
 diff_cmap = get_colormap(args.diff_colormap.split(','))
+
+profile_treatment_label = args.treatment_label if not args.profile_labels else args.profile_labels[0]
+profile_control_label = args.control_label if not args.profile_labels else args.profile_labels[1]
 
 annotations = []
 number_of_annotation_axes = 0
@@ -716,18 +785,18 @@ treatment_avg = compute_average_matrix(treatments)
 controls = [np.loadtxt(file) for file in args.control]
 control_avg = compute_average_matrix(controls)
 
+
 # setting up figure layout
 #plt.rcParams['figure.constrained_layout.use'] = True
 fig1 = plt.figure(dpi=300)
 matrix_subplot_height = args.figwidth / 2
 annotation_height = 0.3
 profile_height = 1
-hspace = 0.15
+hspace = 0.2
 hspaceFig2 = hspace + 0.05
 
 profile_args = [args.treatment_3plus, args.control_3plus, args.profile_yMax]
-if any(profile_args):
-    assert all(profile_args), 'all profile arguments have to be set if one is used'
+if any(profile_args) or args.derivedProfile:
     number_of_annotation_axes += 1
     fig1_height = 2 * matrix_subplot_height + \
                   annotation_height * (number_of_annotation_axes - 1) + \
@@ -779,7 +848,13 @@ gridspec1 = gs.GridSpec(number_of_axes_fig1,
                         hspace=hspace)
 treatment_ax = fig1.add_subplot(gridspec1[0])
 control_ax = fig1.add_subplot(gridspec1[-1])
-profile_ax1 = fig1.add_subplot(gridspec1[number_of_annotation_axes]) if any(profile_args) else None
+if any(profile_args) or args.derivedProfile:
+    if args.profilePeak_yMax: # for some captures, the highest profile peak should be plotted with a broken y axis
+        gridspec1P = gridspec1[number_of_annotation_axes].subgridspec(3, 1, hspace=0.1)
+        profile_ax1a = fig1.add_subplot(gridspec1P[0])
+        profile_ax1b = fig1.add_subplot(gridspec1P[1:])
+    else:
+        profile_ax1 = fig1.add_subplot(gridspec1[number_of_annotation_axes])
 annotation_axs1 = [fig1.add_subplot(gridspec1[i + 1]) for i in range(len(annotations))] if annotations else []
 secondLine2d_ax1 = fig1.add_subplot(gridspec1[-2]) if annotations else None
 
@@ -793,7 +868,13 @@ gridspec2 = gs.GridSpec(number_of_axes_fig2,
                         figure=fig2,
                         hspace=hspaceFig2)
 diff_ax = fig2.add_subplot(gridspec2[0])
-profile_ax2 = fig2.add_subplot(gridspec2[-1]) if any(profile_args) else None
+if any(profile_args) or args.derivedProfile:
+    if args.profilePeak_yMax:
+        gridspec2P = gridspec2[number_of_annotation_axes].subgridspec(3, 1, hspace=0.1)
+        profile_ax2a = fig2.add_subplot(gridspec2P[0])
+        profile_ax2b = fig2.add_subplot(gridspec2P[1:])
+    else:
+        profile_ax2 = fig2.add_subplot(gridspec2[-1])
 annotation_axs2 = [fig2.add_subplot(gridspec2[i + 1]) for i in range(len(annotations))] if annotations else []
 
 oligotab = pd.read_csv(args.capture_bins,
@@ -852,23 +933,55 @@ diff_ax = plot_matrix(diff_ax,
                       xticknum=11,
                       subplot_label=' - '.join((args.treatment_label, args.control_label)),
                       colorbar_ticks=False,
-                      colorbar_label='Proportion of treatment (red) vs ctrl (blue) per bin')
+                      colorbar_label='Enrichment',
+                      colorbar_range=[profile_control_label, profile_treatment_label])
 
-if any(profile_args):
-    profiles = load_profiles(args.treatment_3plus, args.control_3plus,
-                             args.treatment_label, args.control_label,
-                             leftBound, rightBound,
-                             capturebins)
-
-    for profile_ax in [profile_ax1, profile_ax2]:
-        ax = plot_profile_overlay(profile_ax,
-                                  profiles,
-                                  n_bins,
-                                  (leftBound, rightBound),
-                                  yrange=(0, args.profile_yMax),
-                                  capturebins=capturebins,
-                                  colors=('black', '#fc7e00'),
-                                  flipped=args.flipped)
+if any(profile_args) or args.derivedProfile:
+    if args.derivedProfile:
+        profiles = derive_profiles(treatment_avg, control_avg, 
+                                    profile_treatment_label, 
+                                    profile_control_label)
+    else:
+        profiles = load_profiles(args.treatment_3plus, args.control_3plus,
+                                profile_treatment_label, 
+                                profile_control_label,
+                                leftBound, rightBound,
+                                capturebins)
+    
+    if args.profilePeak_yMax:
+        for profile_ax in [profile_ax1a, profile_ax2a]:
+            ax = plot_profile_overlay(profile_ax,
+                                    profiles,
+                                    n_bins,
+                                    (leftBound, rightBound),
+                                    yrange=(args.profilePeak_yMin, args.profilePeak_yMax),
+                                    capturebins=capturebins,
+                                    colors=('black', 'red'),
+                                    flipped=args.flipped,
+                                    spines=['bottom', 'top', 'right'],
+                                    inside=True,
+                                    legend=False)
+        for profile_ax in [profile_ax1b, profile_ax2b]:
+            ax = plot_profile_overlay(profile_ax,
+                                    profiles,
+                                    n_bins,
+                                    (leftBound, rightBound),
+                                    yrange=(0, args.profile_yMax),
+                                    capturebins=capturebins,
+                                    colors=('black', 'red'),
+                                    flipped=args.flipped,
+                                    spines=['top', 'right'])
+    else: 
+        for profile_ax in [profile_ax1, profile_ax2]:
+            ax = plot_profile_overlay(profile_ax,
+                                    profiles,
+                                    n_bins,
+                                    (leftBound, rightBound),
+                                    yrange=(0, args.profile_yMax),
+                                    capturebins=capturebins,
+                                    colors=('black', 'red'),
+                                    spines=['bottom', 'top', 'right'],
+                                    flipped=args.flipped)
 
 if annotations:
     for annotation_axs in [annotation_axs1, annotation_axs2]:
@@ -898,6 +1011,16 @@ if annotations:
                          chrom,
                          mirror_horizontal=True,
                          flipped=args.flipped)
+
+# save options for raw combined matrices and finding the right profile y axis scale
+if args.outputRawPrefix:
+    np.savetxt(f'{args.outputRawPrefix}_treatment_mat.tsv', treatment_avg, delimiter='\t', fmt='%1.3f')
+    np.savetxt(f'{args.outputRawPrefix}_control_mat.tsv', control_avg, delimiter='\t', fmt='%1.3f')
+
+    if any(profile_args) or args.derivedProfile:
+        for (name, profile) in profiles.items():
+            np.savetxt(f'{args.outputRawPrefix}_{name}_profile.tsv', profile, delimiter='\t', fmt='%1.3f')
+
 
 # fig1.tight_layout(pad = 3, h_pad = hspace)
 # fig2.tight_layout(pad = 3, h_pad = hspace)
