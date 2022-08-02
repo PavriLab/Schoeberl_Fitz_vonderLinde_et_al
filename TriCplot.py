@@ -373,7 +373,7 @@ def plot_matrix(ax,
             hlmat[:, hlidx] = 1
             hlmat = np.triu(hlmat)
             hlmat = np.ma.masked_array(hlmat, hlmat == 0)
-            hlmesh = ax.pcolormesh(X, Y, np.flipud(hlmat), cmap=hlmap, vmin=0, vmax=1, alpha=0.125, zorder=1)
+            hlmesh = ax.pcolormesh(X, Y, np.flipud(hlmat), cmap=hlmap, vmin=0, vmax=1, alpha=0.2, zorder=1)
 
     # draw outlines of triangle plot
     vertices = np.array([[0, 0], [N / 2, N], [N, 0]]) if not mirror_horizontal else np.array(
@@ -634,10 +634,6 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
             if capturebin is not None:
                 profiletab.loc[capturebin - 1, 'meanprofile'] = 0  # setting capture site counts to 0, +1 because of count start at 0
 
-        totalnorm = 300000 / profiletab['meanprofile'].sum()
-
-        profiles[k] = profiletab['meanprofile'] * totalnorm
-
         profiles[k].to_csv(f'testingAndUseless/test_{k}.tsv', sep='\t', header=True)
 
     return profiles
@@ -793,7 +789,8 @@ hspace = 0.2
 hspaceFig2 = hspace + 0.05
 
 profile_args = [args.treatment_3plus, args.control_3plus, args.profile_yMax]
-if any(profile_args) or args.derivedProfile:
+if any(profile_args):
+    assert all(profile_args), 'all profile arguments have to be set if one is used'
     number_of_annotation_axes += 1
     fig1_height = 2 * matrix_subplot_height + \
                   annotation_height * (number_of_annotation_axes - 1) + \
@@ -845,7 +842,7 @@ gridspec1 = gs.GridSpec(number_of_axes_fig1,
                         hspace=hspace)
 treatment_ax = fig1.add_subplot(gridspec1[0])
 control_ax = fig1.add_subplot(gridspec1[-1])
-if any(profile_args) or args.derivedProfile:
+if any(profile_args):
     if args.profilePeak_yMax: # for some captures, the highest profile peak should be plotted with a broken y axis
         gridspec1P = gridspec1[number_of_annotation_axes].subgridspec(3, 1, hspace=0.1)
         profile_ax1a = fig1.add_subplot(gridspec1P[0])
@@ -865,8 +862,7 @@ gridspec2 = gs.GridSpec(number_of_axes_fig2,
                         figure=fig2,
                         hspace=hspaceFig2)
 diff_ax = fig2.add_subplot(gridspec2[0])
-
-if any(profile_args) or args.derivedProfile:
+if any(profile_args):
     if args.profilePeak_yMax:
         gridspec2P = gridspec2[number_of_annotation_axes].subgridspec(3, 1, hspace=0.1)
         profile_ax2a = fig2.add_subplot(gridspec2P[0])
@@ -934,7 +930,7 @@ diff_ax = plot_matrix(diff_ax,
                       colorbar_label='Enrichment',
                       colorbar_range=[profile_control_label, profile_treatment_label])
 
-if any(profile_args) or args.derivedProfile:
+if any(profile_args):
     if args.derivedProfile:
         profiles = derive_profiles(treatment_avg, control_avg, 
                                     profile_treatment_label, 
@@ -1015,7 +1011,7 @@ if args.outputRawPrefix:
     np.savetxt(f'{args.outputRawPrefix}_treatment_mat.tsv', treatment_avg, delimiter='\t', fmt='%1.3f')
     np.savetxt(f'{args.outputRawPrefix}_control_mat.tsv', control_avg, delimiter='\t', fmt='%1.3f')
 
-    if any(profile_args) or args.derivedProfile:
+    if any(profile_args):
         for (name, profile) in profiles.items():
             np.savetxt(f'{args.outputRawPrefix}_{name}_profile.tsv', profile, delimiter='\t', fmt='%1.3f')
 
