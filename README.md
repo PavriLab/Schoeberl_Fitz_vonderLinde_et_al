@@ -29,7 +29,7 @@ TGCCGTAG        CCTCGTAG        125066  priB_d0_3_i9
 This information can retrieved via the seqmate site of the VBCF.
 
 ### Modified CCseqBasic5.sh script
-In order to facilitate filtering of reads in terms of mapping quality to remove reads with a MAPQ score below 30, we had to modify the CCseqBasic script because it does not contain this option by default. The modification is simple and is just done by replacing the SAM to BAM conversion directly after alignment with bowtie with a SAM to BAM conversion which includes a MAPQ filtering. This step is facilitated by the `applyMapqFilter.py` script and simply resets all reads with a MAPQ < 30 to unaligned. This way the statistics are untouched and can be computed and plotted as usual. Low mapping reads are then part of the unaligned fraction.
+In order to facilitate filtering of reads in terms of mapping quality to remove reads with a MAPQ score below 30, we had to modify the CCseqBasic script because it does not contain this option by default. The modification is simple and is just done by replacing the SAM to BAM conversion directly after alignment with bowtie with a SAM to BAM conversion which includes a MAPQ filtering. This step is facilitated by the `applyMapqFilter.py` script and simply resets all reads with a MAPQ < 20 or 30 to unaligned. This way the statistics are untouched and can be computed and plotted as usual. Low mapping reads are then part of the unaligned fraction.
 
 Plotting statistics
 
@@ -39,6 +39,8 @@ python3 plotTriCstats.py -d TriC_7_Emu*
                          -o plots/TriC_7_Emu_stats.pdf
 
 where the wildcard is used to just address all existing folders that are supposed to be analysed.
+If these statistics should also be saved in a csv file, the `--dataOut` argument can be specified.
+These csv files can be used by the `plotTriCstatsPool.py` script to plot the average statistics across mutiple replicates.
 
 ### Summing single capture interaction files
 If you are using multiple probes in one sample the pipeline will produce an interaction file for each probe separately. This is usually not what we want and we thus need to recombine them to a single interaction file. This is done with the `sumInteractionFiles.py`, which just sums the counts for the individual restriction fragments and writes the result including the maximum count to a new file. An example command looks like follows:
@@ -58,7 +60,7 @@ python3 TriCgetReads.py -b CCseq/${sample}/F6_greenGraphs_combined_sample_CS5/CO
 ```
 The `-n` argument specifies the number of fragments a valid read has. This is an exact process. If one would like to get all reads with exactly n or more fragments, the `--larger` flag has to be set.
 
-The next step is the generation of the read profile over our region of interest for each sample, which is done using the [deeptools](https://deeptools.readthedocs.io/en/develop/) `multiBamSummary`. This requires the BAM files to be position sorted and indexed, which can easily be done with [`samtools`](http://www.htslib.org/doc/samtools.html). The `multiBamSummary` command to use would look like this:
+An **optional** next step is the generation of the read profile over our region of interest for each sample, which is done using the [deeptools](https://deeptools.readthedocs.io/en/develop/) `multiBamSummary`. This requires the BAM files to be position sorted and indexed, which can easily be done with [`samtools`](http://www.htslib.org/doc/samtools.html). The `multiBamSummary` command to use would look like this:
 ```bash
 
 # 3 or more way reads
@@ -73,9 +75,12 @@ do
                          --outRawCounts profiles/${sample}_3plus.tsv
 done
 ```
-The results we need is the `profiles/${sample}_3plus.tsv` file. Note that the used binsize has to be the same as the binsize used for calculating the Tri-C matrices using the `TriC_matrix_simple_MO.py` script either of the original publication from the repository of [Marike Oudelaar](https://github.com/oudelaar/TriC) or from this repository (please see section below for more information about the differences). The next step is to collect the Tri-C matrix files, as computed by the CCseq pipeline with the `--tric` flag set from their residing folder (F7*/sample/), which is based on the actual restriction fragment boundaries, and using the above mentioned script to generate a matrix file with a fixed binsize with
+The results we need is the `profiles/${sample}_3plus.tsv` file. Note that the used binsize has to be the same as the binsize used for calculating the Tri-C matrices using the `TriC_matrix_simple_MO.py` script either of the original publication from the repository of [Marike Oudelaar](https://github.com/oudelaar/TriC) or from this repository (please see section below for more information about the differences).  
+If these files are not generated, the profile can be derived directly from the contact matrices during plotting with `TriCplot.py` by adding the argument `--derivedProfile`.
+
+The next step is to collect the Tri-C matrix files, as computed by the CCseq pipeline with the `--tric` flag set from their residing folder (F7*/sample/), which is based on the actual restriction fragment boundaries, and using the above mentioned script to generate a matrix file with a fixed binsize with
 ```bash
-python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile -c chr12 -l 114435000 -r 114669000 -b 1000 -t 50 -a -o TriCplots
+python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile -c chr12 -l 114435000 -r 114669000 -b 1000 -t 80 -a -o folder
 ```
 where `-t` specifies a cutoff for the value each matrix entry can acquire. The generated files can then be used with the `TriCplot.py` script to generate data visualizations of the pipelines results. An example command is given below:
 ```bash
@@ -84,6 +89,8 @@ python3 TriCplot.py --treatment data/matrices/priB_d2_Emu_*_TriC_interactions_10
                     --control data/matrices/priB_d0_Emu_*_TriC_interactions_1000_RAW.tab \
                     --control_label priB_d0 \
                     --region "chr12:114435000-114669000" \
+                    --binsize 1000 \
+                    --compare_vMax 100 \
                     --capture_bins capture.oligo \
                     --annotation data/annotations/vdj_genes.sort.bed data/annotations/vdj_REs.bed data/annotations/mappability.bw \
                     --annotation_drawstyle Line2D Marker bigwig \
@@ -98,10 +105,10 @@ python3 TriCplot.py --treatment data/matrices/priB_d2_Emu_*_TriC_interactions_10
                     --profile_yMax 200 \
                     --outputFilePrefix data/priB_Emu
 ```
-A more detailed documentation on the different commandline arguments can be found via `python3 TriCplot.py --help/-h`. Results and test data can be found in the data folder.
+A more detailed documentation on the different commandline arguments can be found via `python3 TriCplot.py --help/-h`. Results and test data can be found in the data folder. The `data/annotations/vdj_genes.sort.bed` file is a custom bed file with annotations of the region. It is processed by LaTeX, so the display_names can show special characters like greek letters.
 
 ### Changes to `TriC_matrix_simple_MO.py`
-This script is basically a copy of the original script of [Marieke Oudelaar](https://github.com/oudelaar/TriC), with the addition of the ability to specify a second region which will be used to compute the matrix normalization factor. The new parameters are `--normchrom`, `--nstr` and `--nstp` and a typical command would look like this
+This script is basically a copy of the original script of [Marieke Oudelaar](https://github.com/oudelaar/TriC), with the addition of the ability to specify a second region which will be used to compute the matrix normalization factor and a new general normalization. Matrices are normalized to 300,000 total interactions. The new parameters are `--normchrom`, `--nstr` and `--nstp` and a typical command would look like this
 ```bash
 python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile \
                                       -c chr12 -l 114435000 -r 114669000 \
@@ -111,6 +118,9 @@ python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile \
                                       -a \
                                       -o TriCplots
 ```
+
+### Running Environment
+All packages that were used can be found in the `TriCenv.yml` conda environment. In addition Latech was installed as techlive 2020. This is necessary for the plotting. 
 
 ### FAQ
 #### How do I get the oligos file for my capture probes?

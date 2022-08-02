@@ -636,10 +636,7 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
 
         totalnorm = 300000 / profiletab['meanprofile'].sum()
 
-        # binnorm = 1000 / (meanprofile * totalnorm).max()
-
-        # profiles[k] = np.log10(profiletab['meanprofile'] * totalnorm +1)  # normalize to 100,000 total interactions, add 1 for log scale
-        profiles[k] = profiletab['meanprofile'] * totalnorm  # * binnorm
+        profiles[k] = profiletab['meanprofile'] * totalnorm
 
         profiles[k].to_csv(f'testingAndUseless/test_{k}.tsv', sep='\t', header=True)
 
@@ -868,6 +865,7 @@ gridspec2 = gs.GridSpec(number_of_axes_fig2,
                         figure=fig2,
                         hspace=hspaceFig2)
 diff_ax = fig2.add_subplot(gridspec2[0])
+
 if any(profile_args) or args.derivedProfile:
     if args.profilePeak_yMax:
         gridspec2P = gridspec2[number_of_annotation_axes].subgridspec(3, 1, hspace=0.1)

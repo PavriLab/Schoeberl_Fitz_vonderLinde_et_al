@@ -385,11 +385,11 @@ print("\nOutput file names set to start with : '" + full_file_name_out_ery + "*'
 
 # initialise matrix
 print("Initialise matrix ..")
-
 bin_start = start / bin_size
 bin_stop = stop / bin_size
 n_bins = int(bin_stop - bin_start)
 matrix = np.zeros((n_bins, n_bins))
+print(matrix.shape)
 
 # generate matrix
 print("Generate matrix ..")
@@ -418,35 +418,59 @@ def read_input(full_file_name_ery, start, stop):
 
     return int_dic, RF_dic, matrix_interaction_count
 
-int_dic, RF_dic, matrix_interaction_count = read_input(full_file_name_ery, start, stop)
+# int_dic, RF_dic, matrix_interaction_count = read_input(full_file_name_ery, start, stop)
+# print('interactions', matrix_interaction_count)
 
-print('interactions', matrix_interaction_count)
 
 if normchrom:
-    _, _, matrix_interaction_count_norm = read_input(full_file_name_ery, normstart, normstop)
-    print('partial interactions', matrix_interaction_count_norm)
-    print('ratio', matrix_interaction_count_norm / matrix_interaction_count)
+    int_dic, RF_dic, matrix_interaction_count_norm = read_input(full_file_name_ery, normstart, normstop)
+    # print('partial interactions', matrix_interaction_count_norm)
+    # print('ratio', matrix_interaction_count_norm / matrix_interaction_count)
 
-for key in int_dic:
-    bin1 = int(key[0] / bin_size)
-    bin2 = int(key[1] / bin_size)
-    if bin1 >= bin_start and bin1 < bin_stop and bin2 >= bin_start and bin2 < bin_stop:
-        corr = len(RF_dic[bin1]) * len(
-            RF_dic[bin2])  # calculate number of restriction fragments contributing to each bin
+    print("Initialise norm matrix ..")
+    norm_bin_start = normstart / bin_size
+    norm_bin_stop = normstop / bin_size
+    norm_n_bins = int(norm_bin_stop - norm_bin_start)
+    norm_matrix = np.zeros((norm_n_bins, norm_n_bins))
 
-        # normalise for number of restriction fragments per bin
-        matrix[int(bin1 - bin_start), int(bin2 - bin_start)] += 1.0 * int_dic[
-            key] / corr
+    for key in int_dic:
+        bin1 = int(key[0] / bin_size)
+        bin2 = int(key[1] / bin_size)
+        if bin1 >= norm_bin_start and bin1 < norm_bin_stop and bin2 >= norm_bin_start and bin2 < norm_bin_stop:
+            corr = len(RF_dic[bin1]) * len(
+                RF_dic[bin2])  # calculate number of restriction fragments contributing to each bin
+            # normalise for number of restriction fragments per bin
+            norm_matrix[int(bin1 - norm_bin_start), int(bin2 - norm_bin_start)] += 1.0 * int_dic[
+                key] / corr
+    print(norm_matrix.shape)
+    # normalize each value in the norm_matrix so that the sum of all values equals 300,000 while the weights stay the same
+    normalizer = 300000 / norm_matrix.sum()
+    norm_matrix = norm_matrix * normalizer
+    # cut the range that the matrix is supposed to have from the big matrix where normalization was applied
+    print((bin_start - norm_bin_start))
+    matrix = norm_matrix[int(bin_start - norm_bin_start):int(bin_stop - norm_bin_start), int(bin_start - norm_bin_start):int(bin_stop - norm_bin_start)]
 
-# normalize each value in the matrix so that the sum of all values equals 300,000 while the weights stay the same
-normalizer = 300000 / matrix.sum()
-matrix = matrix * normalizer
+else:
+    int_dic, RF_dic, matrix_interaction_count_norm = read_input(full_file_name_ery, start, stop)
+
+    for key in int_dic:
+        bin1 = int(key[0] / bin_size)
+        bin2 = int(key[1] / bin_size)
+        if bin1 >= bin_start and bin1 < bin_stop and bin2 >= bin_start and bin2 < bin_stop:
+            corr = len(RF_dic[bin1]) * len(
+                RF_dic[bin2])  # calculate number of restriction fragments contributing to each bin
+            # normalise for number of restriction fragments per bin
+            matrix[int(bin1 - bin_start), int(bin2 - bin_start)] += 1.0 * int_dic[
+                key] / corr
+
+    # normalize each value in the matrix so that the sum of all values equals 300,000 while the weights stay the same
+    normalizer = 300000 / matrix.sum()
+    matrix = matrix * normalizer
 
 count = 0
 for i in matrix:
     nz = i[i != 0]
     count += nz[0] if len(nz) > 0 else 0
-
 # Start parsing from command line ..
 
 print("Generate plot ..")
