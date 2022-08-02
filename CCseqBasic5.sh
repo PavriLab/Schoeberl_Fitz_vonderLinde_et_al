@@ -115,6 +115,7 @@ QSUBERRFILE="qsub.err"
 #echo "CCseq.out" > CCseq.out
 #echo "CCseq.err" > CCseq.err
 
+CHAIN=""
 MAPQ=20
 CapturesiteFile=""
 TRIM=1
@@ -380,7 +381,7 @@ echo
 
 #------------------------------------------
 
-OPTS=`getopt -o h,m:,M:,o:,c:,s:,w:,i:,v: --long help,dump,snp,dpn,nla,hind,gz,strandSpecificDuplicates,redGreen,triCyellowBlack,onlyCis,onlyBlat,onlyTriC,triC,triCwithExcl,binnedTriC,UMI,useSymbolicLinks,SRR,CCversion:,BLATforREUSEfolderPath:,globin:,outfile:,errfile:,lanes:,limit:,pf:,genome:,R1:,R2:,mapq:,saveGenomeDigest,dontSaveGenomeDigest,trim,noTrim,chunkmb:,bowtie1,bowtie2,window:,increment:,ada3read1:,ada3read2:,extend:,onlyCCanalyser,onlyHub,noPloidyFilter:,qmin:,flashBases:,flashMismatch:,stringent,trim3:,trim5:,seedmms:,seedlen:,maqerr:,stepSize:,tileSize:,minScore:,minIdentity:,minMatch:,maxIntron:,oneOff:,wobblyEndBinWidth:,ampliconSize:,sonicationSize:,triCbin:,triCmax:,fourFragmentsPerRead,fiveFragmentsPerRead,sixFragmentsPerRead,sevenFragmentsPerRead -- "$@"`
+OPTS=`getopt -o h,m:,M:,o:,c:,s:,w:,i:,v: --long help,dump,snp,dpn,nla,hind,gz,strandSpecificDuplicates,redGreen,triCyellowBlack,onlyCis,onlyBlat,onlyTriC,triC,triCwithExcl,binnedTriC,UMI,useSymbolicLinks,SRR,CCversion:,BLATforREUSEfolderPath:,globin:,outfile:,errfile:,lanes:,limit:,pf:,genome:,R1:,R2:,mapq:,chain:,saveGenomeDigest,dontSaveGenomeDigest,trim,noTrim,chunkmb:,bowtie1,bowtie2,window:,increment:,ada3read1:,ada3read2:,extend:,onlyCCanalyser,onlyHub,noPloidyFilter:,qmin:,flashBases:,flashMismatch:,stringent,trim3:,trim5:,seedmms:,seedlen:,maqerr:,stepSize:,tileSize:,minScore:,minIdentity:,minMatch:,maxIntron:,oneOff:,wobblyEndBinWidth:,ampliconSize:,sonicationSize:,triCbin:,triCmax:,threeFragmentsPerRead,fourFragmentsPerRead,fiveFragmentsPerRead,sixFragmentsPerRead,sevenFragmentsPerRead -- "$@"`
 if [ $? != 0 ]
 then
     exit 1
@@ -400,6 +401,7 @@ while true ; do
         -s) Sample=$2 ; shift 2;;
         -v) LOWERCASE_V=$2; shift 2;;
         --help) usage ; shift;;
+        --chain) CHAIN=$2 ; shift 2;;
         --mapq) MAPQ=$2 ; shift 2;;
         --UMI) printThis="UMI flag temporarily broken 01Nov2018\nEXITING";printToLogFile;exit 1;otherParameters="$otherParameters --umi" ; shift;;
         --useSymbolicLinks) otherParameters="${otherParameters} --symlinks" ; otherTricParameters="${otherTricParameters} --symlinks"; shift;;
@@ -416,6 +418,7 @@ while true ; do
         --onlyCis) onlyCis=1;otherParameters="$otherParameters --onlycis"; shift;;
         --onlyBlat) ONLY_BLAT=1 ; shift;;
         --onlyBlat) ONLY_BLAT=1 ; shift;;
+        --threeFragmentsPerRead) fragsPerRead=3 ; shift;;
         --fourFragmentsPerRead) fragsPerRead=4 ; shift;;
         --fiveFragmentsPerRead) fragsPerRead=5 ; shift;;
         --sixFragmentsPerRead) fragsPerRead=6 ; shift;;
@@ -1289,8 +1292,24 @@ if [ "${ONLY_TRIC}" -eq "0" ]; then
 
             flashstatus="FLASHED"
             rm -f ${flashstatus}FLASHED_REdig.fastq
-            echo "python3 applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.sam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam"
-            python3 /groups/pavri/bioinfo/daniel/TriC/utils/applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.sam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam
+            if [ "${CHAIN}" = "1" ] ; then
+                echo "python3 applyDirectionalityFilter.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam"
+                python3 /groups/pavri/bioinfo/max/TriC/utils/applyDirectionalityFilter.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam
+                elif [ "${CHAIN}" = "fwd" ] ; then
+                echo "python3 applyDirectionalityFilter_fwd.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam"
+                python3 /groups/pavri/bioinfo/max/TriC/utils/applyDirectionalityFilter_fwd.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam
+                elif [ "${CHAIN}" = "fwdrev" ] ; then
+                echo "python3 applyDirectionalityFilter_fwdrev.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam"
+                python3 /groups/pavri/bioinfo/max/TriC/utils/applyDirectionalityFilter_fwdrev.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam
+                elif [ "${CHAIN}" = "conv" ] ; then
+                echo "python3 applyDirectionalityFilter_conv.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam"
+                python3 /groups/pavri/bioinfo/max/TriC/utils/applyDirectionalityFilter_conv.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam
+                else; then
+                samtools view -b ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam
+            fi
+            echo "python3 applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.bam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam"
+            python3 /groups/pavri/bioinfo/max/TriC/utils/applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.bam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam
+
             #echo "samtools view -hb ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam"
             #samtools view -hb ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam
             ls -lht ${flashstatus}_REdig_unfiltered.bam
@@ -1329,8 +1348,23 @@ if [ "${ONLY_TRIC}" -eq "0" ]; then
 
             flashstatus="NONFLASHED"
             rm -f ${flashstatus}FLASHED_REdig.fastq
-            echo "python3 applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.sam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam"
-            python3 /groups/pavri/bioinfo/daniel/TriC/utils/applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.sam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam
+            if [ "${CHAIN}" = "1" ] ; then
+                echo "python3 applyDirectionalityFilter.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam"
+                python3 /groups/pavri/bioinfo/max/TriC/utils/applyDirectionalityFilter.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam
+                elif [ "${CHAIN}" = "fwd" ] ; then
+                echo "python3 applyDirectionalityFilter_fwd.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam"
+                python3 /groups/pavri/bioinfo/max/TriC/utils/applyDirectionalityFilter_fwd.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam
+                elif [ "${CHAIN}" = "fwdrev" ] ; then
+                echo "python3 applyDirectionalityFilter_fwdrev.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam"
+                python3 /groups/pavri/bioinfo/max/TriC/utils/applyDirectionalityFilter_fwdrev.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam
+                elif [ "${CHAIN}" = "conv" ] ; then
+                echo "python3 applyDirectionalityFilter_conv.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam"
+                python3 /groups/pavri/bioinfo/max/TriC/utils/applyDirectionalityFilter_conv.py -i ${flashstatus}_REdig_unfiltered.sam -o ${flashstatus}_REdig_unfiltered.bam
+                else; then
+                samtools view -b ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam
+            fi
+            echo "python3 applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.bam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam"
+            python3 /groups/pavri/bioinfo/max/TriC/utils/applyMapqFilter.py -i ${flashstatus}_REdig_unfiltered.bam -q ${MAPQ} -o ${flashstatus}_REdig_unfiltered.bam
             #echo "samtools view -hb ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam"
             #samtools view -hb ${flashstatus}_REdig_unfiltered.sam > ${flashstatus}_REdig_unfiltered.bam
             ls -lht ${flashstatus}_REdig_unfiltered.bam
