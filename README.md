@@ -1,4 +1,4 @@
-# tric
+# Costea and Schoeberl et al.
 repository for data analysis related code for Costea and Schoeberl et al.
 
 ## Overview
