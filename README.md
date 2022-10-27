@@ -1,7 +1,8 @@
 # tric
-repository for Tri-C data analysis related code.
+repository for data analysis related code for Costea and Schoeberl et al.
 
 ## Overview
+The repository is organized by distinguishing code for either Tri-C or Micro-C data analysis. Each of the subfolders contains three additional directories separating jupyter notebooks containing all the analysis, related data and auxiliary scripts. Furthermore, the Tri-C folder contains a folder for the modified scripts copied from [Oudelaar et al.](https://github.com/oudelaar/TriC). Tri-C data analysis was conducted by Daniel Malzl and Max von der Linde. Micro-C data was analysed by Ankit Gupta.
 
 ### Demultiplexing reads
 This task is a very generic one and could in principle also be done by any other dedicated software. Nevertheless, `TriCdemultiplex.py` handles this task at least for the samples generated at the VBCF facilities. The script requires you to pass the BAM file containing the reads to demultiplex, a file containing the barcodes as well as a mapping to the sample name and the number of mismatches allowed in the barcode with the `-m` argument. The `-t` argument specifies the number of threads to use for demultiplexing and `-p` gives the prefix of the demultiplexed fastq files.
@@ -120,7 +121,7 @@ python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile \
 ```
 
 ### Running Environment
-All packages that were used can be found in the `TriCenv.yml` conda environment. In addition Latech was installed as techlive 2020. This is necessary for the plotting. 
+All packages that were used can be found in the `TriCenv.yml` conda environment. In addition LaTeX was installed as techlive 2020. This is necessary for the plotting. 
 
 ### FAQ
 #### How do I get the oligos file for my capture probes?
