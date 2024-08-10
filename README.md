@@ -57,27 +57,6 @@ python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile -c chr12 -l 114435000 -
 ```
 where `-t` specifies a cutoff for the value each matrix entry can acquire. The generated files can then be used with the `TriCplot.py` script to generate data visualizations of the pipelines results. Multiple files can be supplied to the --treatment and --contol option to generate plots with pooled samples. An example command is given below:
 ```bash
-python3 TriCplot.py --treatment data/matrices/priB_d2_Emu_*_TriC_interactions_1000_RAW.tab \
-                    --treatment_label priB_d2 \
-                    --control data/matrices/priB_d0_Emu_*_TriC_interactions_1000_RAW.tab \
-                    --control_label priB_d0 \
-                    --region "chr12:114435000-114669000" \
-                    --binsize 1000 \
-                    --compare_vMax 100 \
-                    --capture_bins capture.oligo \
-                    --annotation data/annotations/vdj_genes.sort.bed data/annotations/vdj_REs.bed data/annotations/mappability.bw \
-                    --annotation_drawstyle Line2D Marker bigwig \
-                    --annotation_yMin 0 0 0 \
-                    --annotation_yMax 1 1 1 \
-                    --annotation_labels Genes REs map \
-                    --alternating 0 0 0 \
-                    --highlight_annotation 1 \
-                    --highlight_features Cg1 4 \
-                    --treatment_3plus data/profiles/priB_d2_Emu_3plus.tsv \
-                    --control_3plus data/profiles/priB_d0_Emu_3plus.tsv \
-                    --profile_yMax 200 \
-                    --outputFilePrefix data/priB_Emu
-
 python3 TriCplot.py --treatment data/matrices/TriC15_1C4_C14_EmuEdKO*TriC_interactions_2000_RAW.tab \
                     --treatment_label 'C14 1C4 EmuEdKO' \
                     --control data/matrices/TriC15_1C4_EmuKO*TriC_interactions_2000_RAW.tab \
