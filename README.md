@@ -57,10 +57,10 @@ python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile -c chr12 -l 114435000 -
 ```
 where `-t` specifies a cutoff for the value each matrix entry can acquire. The generated files can then be used with the `TriCplot.py` script to generate data visualizations of the pipelines results. Multiple files can be supplied to the --treatment and --contol option to generate plots with pooled samples. An example command is given below:
 ```bash
-python3 TriCplot.py --treatment data/matrices/TriC15_1C4_C14_EmuEdKO*TriC_interactions_2000_RAW.tab \
-                    --treatment_label 'C14 1C4 EmuEdKO' \
-                    --control data/matrices/TriC15_1C4_EmuKO*TriC_interactions_2000_RAW.tab \
-                    --control_label '1C4 EmuKO' \
+python3 TriCplot.py --treatment data/matrices/TriC15_1C4_EmuKO*TriC_interactions_2000_RAW.tab \
+                    --treatment_label '1C4 EmuKO' \
+                    --control data/matrices/TriC15_D3*TriC_interactions_2000_RAW.tab \
+                    --control_label 'D3' \
                     --region "chr14:105550000-105866000" \
                     --binsize 2000 \
                     --compare_vMax 500 \
@@ -79,7 +79,7 @@ python3 TriCplot.py --treatment data/matrices/TriC15_1C4_C14_EmuEdKO*TriC_intera
                     --flipped \
                     --derivedProfile \
                     --compare_colormap "antiquewhite,orange,red,black" \
-                    --outputFilePrefix data/TriC15_Ramos_1C4_C14_EmuEdKO_EmuKO_2kb_mapq30_s500  
+                    --outputFilePrefix data/TriC15M14708_Ramos_1C4_EmuKO_D3_2kb_mapq30_s500  
 ```
 A more detailed documentation on the different commandline arguments can be found via `python3 TriCplot.py --help/-h`. Results and test data can be found in the data folder. The `data/annotations/hg38_vdj_genes_flipped.sort.bed` file is a custom bed file with annotations of the region. It is processed by LaTeX, so the display_names can show special characters like greek letters.
 
