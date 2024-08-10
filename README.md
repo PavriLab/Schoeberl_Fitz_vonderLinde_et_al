@@ -1,9 +1,8 @@
-[![DOI](https://zenodo.org/badge/299866281.svg)](https://zenodo.org/badge/latestdoi/299866281)
-# Costea and Schoeberl et al.
-repository for data analysis related code for Costea and Schoeberl et al.
+# Schoeberl, Fitz and von der Linde et al.
+repository for data analysis related code for Schoeberl, Fitz and von der Linde et al.
 
 ## Overview
-The repository is organized by distinguishing code for either Tri-C or Micro-C data analysis. Each of the subfolders contains three additional directories separating jupyter notebooks containing all the analysis, related data and auxiliary scripts. Furthermore, the Tri-C folder contains a folder for the modified scripts copied from [Oudelaar et al.](https://github.com/oudelaar/TriC). Tri-C data analysis was conducted by Daniel Malzl and Max von der Linde. Micro-C data was analysed by Ankit Gupta.
+The repository contains scripts related to the analysis of Tri-C data. Each of the subfolders contains three additional directories separating jupyter notebooks containing all the analysis, related data and auxiliary scripts. Furthermore, the Tri-C folder contains a folder for the modified scripts copied from [Oudelaar et al.](https://github.com/oudelaar/TriC). Tri-C data analysis was conducted by Maximilian von der Linde.
 
 ### Demultiplexing reads
 This task is a very generic one and could in principle also be done by any other dedicated software. Nevertheless, `TriCdemultiplex.py` handles this task at least for the samples generated at the VBCF facilities. The script requires you to pass the BAM file containing the reads to demultiplex, a file containing the barcodes as well as a mapping to the sample name and the number of mismatches allowed in the barcode with the `-m` argument. The `-t` argument specifies the number of threads to use for demultiplexing and `-p` gives the prefix of the demultiplexed fastq files.
@@ -52,39 +51,11 @@ python3 sumInteractionFiles.py -i CCseq/${sample}/F6_greenGraphs_combined_sample
 ```
 
 ### Visualizing the results
-The final step of the analysis is the visualization of the results of the [CCseq](https://github.com/Hughes-Genome-Group/CCseqBasicS) pipeline. This is done by the `TriCplot.py` script. However, in order to do this we need to generate a few additional files from the pipeline output, namely fetching the COMBINED.bam file of stage 6 and extracting reads that have only 3 or more than 3 fragments, which is necessary to generate the profile plots. The `TriCgetReads.py` script does exactly that. Example commands for this would look as follows:
-```bash
-# for reads with 3 or more fragments
-python3 TriCgetReads.py -b CCseq/${sample}/F6_greenGraphs_combined_sample_CS5/COMBINED_reported_capture_reads_CS5.bam \
-                        -n 3 \
-                        --larger \
-                        -o morethanthree/${sample}_3wayplus.bam
-```
-The `-n` argument specifies the number of fragments a valid read has. This is an exact process. If one would like to get all reads with exactly n or more fragments, the `--larger` flag has to be set.
-
-An **optional** next step is the generation of the read profile over our region of interest for each sample, which is done using the [deeptools](https://deeptools.readthedocs.io/en/develop/) `multiBamSummary`. This requires the BAM files to be position sorted and indexed, which can easily be done with [`samtools`](http://www.htslib.org/doc/samtools.html). The `multiBamSummary` command to use would look like this:
-```bash
-
-# 3 or more way reads
-for sample in `less samples.txt`;
-do
-    multiBamSummary bins -p 8 \
-                         -b morethanthree/${sample}.sort.bam \
-                         --binSize 1000 \
-                         --labels ${sample} \
-                         --region chr12 \
-                         -o profiles/${prefix}_3plus.npz \
-                         --outRawCounts profiles/${sample}_3plus.tsv
-done
-```
-The results we need is the `profiles/${sample}_3plus.tsv` file. Note that the used binsize has to be the same as the binsize used for calculating the Tri-C matrices using the `TriC_matrix_simple_MO.py` script either of the original publication from the repository of [Marike Oudelaar](https://github.com/oudelaar/TriC) or from this repository (please see section below for more information about the differences).  
-If these files are not generated, the profile can be derived directly from the contact matrices during plotting with `TriCplot.py` by adding the argument `--derivedProfile`.
-
-The next step is to collect the Tri-C matrix files, as computed by the CCseq pipeline with the `--tric` flag set from their residing folder (F7*/sample/), which is based on the actual restriction fragment boundaries, and using the above mentioned script to generate a matrix file with a fixed binsize with
+The final step of the analysis is the visualization of the results of the [CCseq](https://github.com/Hughes-Genome-Group/CCseqBasicS) pipeline. This is done by the `TriCplot.py` script. It uses the matrix files generated by the CCseq pipeline (Oudelaar et al.) with this command:
 ```bash
 python3 TriC/TriC_matrix_simple_MO.py -f CCseqmatrixfile -c chr12 -l 114435000 -r 114669000 -b 1000 -t 80 -a -o folder
 ```
-where `-t` specifies a cutoff for the value each matrix entry can acquire. The generated files can then be used with the `TriCplot.py` script to generate data visualizations of the pipelines results. An example command is given below:
+where `-t` specifies a cutoff for the value each matrix entry can acquire. The generated files can then be used with the `TriCplot.py` script to generate data visualizations of the pipelines results. Multiple files can be supplied to the --treatment and --contol option to generate plots with pooled samples. An example command is given below:
 ```bash
 python3 TriCplot.py --treatment data/matrices/priB_d2_Emu_*_TriC_interactions_1000_RAW.tab \
                     --treatment_label priB_d2 \
@@ -106,8 +77,32 @@ python3 TriCplot.py --treatment data/matrices/priB_d2_Emu_*_TriC_interactions_10
                     --control_3plus data/profiles/priB_d0_Emu_3plus.tsv \
                     --profile_yMax 200 \
                     --outputFilePrefix data/priB_Emu
+
+python3 TriCplot.py --treatment data/matrices/TriC15_1C4_C14_EmuEdKO*TriC_interactions_2000_RAW.tab \
+                    --treatment_label 'C14 1C4 EmuEdKO' \
+                    --control data/matrices/TriC15_1C4_EmuKO*TriC_interactions_2000_RAW.tab \
+                    --control_label '1C4 EmuKO' \
+                    --region "chr14:105550000-105866000" \
+                    --binsize 2000 \
+                    --compare_vMax 500 \
+                    --capture_bins 5Smu_capture.oligo \
+                    --annotation  data/annotations/hg38_vdj_genes_flipped.sort.bed  data/annotations/hg38_vdj_REs.bed  data/annotations/hg38_mappability.bw \
+                    --annotation_drawstyle Line2D Marker bigwig \
+                    --annotation_yMin 0 0 0 \
+                    --annotation_yMax 1 1 1 \
+                    --annotation_labels '' 'NIaIII' 'Mapp.' \
+                    --alternating 0 0 0 \
+                    --highlight_annotation 1 \
+                    --highlight_features 1,2_1 3_1 4_1 1,2_2 3_2 4_2 Ed Emu \
+                    --profile_yMax 10000 \
+                    --profilePeak_yMin 25000 \
+                    --profilePeak_yMax 65000 \
+                    --flipped \
+                    --derivedProfile \
+                    --compare_colormap "antiquewhite,orange,red,black" \
+                    --outputFilePrefix data/TriC15_Ramos_1C4_C14_EmuEdKO_EmuKO_2kb_mapq30_s500  
 ```
-A more detailed documentation on the different commandline arguments can be found via `python3 TriCplot.py --help/-h`. Results and test data can be found in the data folder. The `data/annotations/vdj_genes.sort.bed` file is a custom bed file with annotations of the region. It is processed by LaTeX, so the display_names can show special characters like greek letters.
+A more detailed documentation on the different commandline arguments can be found via `python3 TriCplot.py --help/-h`. Results and test data can be found in the data folder. The `data/annotations/hg38_vdj_genes_flipped.sort.bed` file is a custom bed file with annotations of the region. It is processed by LaTeX, so the display_names can show special characters like greek letters.
 
 ### Changes to `TriC_matrix_simple_MO.py`
 This script is basically a copy of the original script of [Marieke Oudelaar](https://github.com/oudelaar/TriC), with the addition of the ability to specify a second region which will be used to compute the matrix normalization factor and a new general normalization. Matrices are normalized to 300,000 total interactions. The new parameters are `--normchrom`, `--nstr` and `--nstp` and a typical command would look like this
