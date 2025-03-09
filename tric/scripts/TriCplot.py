@@ -505,7 +505,6 @@ def plot_profile_overlay(ax,
         
         if flipped:
             profile = list(reversed(profile))
-
         ax.plot(np.arange(number_of_bins) + 0.5, profile, color=color, label=profilename)
 
         if capturebins:
@@ -640,8 +639,6 @@ def load_profiles(treatment_profile, control_profile, treatment_label, control_l
 
         # profiles[k] = np.log10(profiletab['meanprofile'] * totalnorm +1)  # normalize to 100,000 total interactions, add 1 for log scale
         profiles[k] = profiletab['meanprofile'] * totalnorm  # * binnorm
-
-        profiles[k].to_csv(f'testingAndUseless/test_{k}.tsv', sep='\t', header=True)
 
     return profiles
 
@@ -956,7 +953,7 @@ if any(profile_args) or args.derivedProfile:
                                     (leftBound, rightBound),
                                     yrange=(args.profilePeak_yMin, args.profilePeak_yMax),
                                     capturebins=capturebins,
-                                    colors=('black', 'red'),
+                                    colors=('red', 'black'),
                                     flipped=args.flipped,
                                     spines=['bottom', 'top', 'right'],
                                     inside=True,
@@ -968,7 +965,7 @@ if any(profile_args) or args.derivedProfile:
                                     (leftBound, rightBound),
                                     yrange=(0, args.profile_yMax),
                                     capturebins=capturebins,
-                                    colors=('black', 'red'),
+                                    colors=('red', 'black'),
                                     flipped=args.flipped,
                                     spines=['top', 'right'])
     else: 
@@ -979,7 +976,7 @@ if any(profile_args) or args.derivedProfile:
                                     (leftBound, rightBound),
                                     yrange=(0, args.profile_yMax),
                                     capturebins=capturebins,
-                                    colors=('black', 'red'),
+                                    colors=('red', 'black'),
                                     spines=['bottom', 'top', 'right'],
                                     flipped=args.flipped)
 
